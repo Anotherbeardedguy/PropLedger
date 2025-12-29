@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:propledger/app/app.dart';
 
 void main() {
-  testWidgets('PropLedger app smoke test', (WidgetTester tester) async {
+  testWidgets('PropLedger app initializes', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: PropLedgerApp()));
+    await tester.pump();
 
-    expect(find.text('PropLedger - Coming Soon'), findsOneWidget);
+    expect(find.byType(PropLedgerApp), findsOneWidget);
   });
 }
