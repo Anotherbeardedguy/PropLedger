@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/logic/auth_notifier.dart';
 import '../../properties/presentation/properties_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -8,20 +7,9 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-    final user = authState.user;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              ref.read(authNotifierProvider.notifier).logout();
-            },
-          ),
-        ],
+        title: const Text('PropLedger - Local Mode'),
       ),
       body: Center(
         child: Column(
@@ -38,12 +26,12 @@ class DashboardScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 8),
-            if (user != null) ...[
-              Text(
-                user.email,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
+            Text(
+              'Local Mode - All data stored on device',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
             const SizedBox(height: 32),
             Padding(
               padding: const EdgeInsets.all(24.0),
