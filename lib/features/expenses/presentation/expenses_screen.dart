@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/expense.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/enhanced_empty_state.dart';
+import '../../../core/widgets/enhanced_error_display.dart';
+import '../../../core/widgets/loading_skeleton.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/expenses_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
@@ -43,20 +46,18 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
           expenses.sort((a, b) => b.date.compareTo(a.date));
 
           if (expenses.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No expenses found'),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap + to add your first expense',
-                    style: TextStyle(color: Colors.grey),
+            return EnhancedEmptyState(
+              icon: Icons.receipt_long,
+              title: 'No Expenses Yet',
+              message: 'Track your property expenses and maintain financial records.',
+              actionLabel: 'Add Expense',
+              onAction: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddEditExpenseScreen(),
                   ),
-                ],
-              ),
+                );
+              },
             );
           }
 
@@ -125,9 +126,10 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Error: $error'),
+        loading: () => const ListSkeleton(itemCount: 5),
+        error: (error, _) => EnhancedErrorDisplay(
+          message: error.toString(),
+          onRetry: () => ref.refresh(expensesNotifierProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton(

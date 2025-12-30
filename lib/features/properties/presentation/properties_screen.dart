@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/widgets/empty_state.dart';
-import '../../../core/widgets/error_display.dart';
+import '../../../core/widgets/enhanced_empty_state.dart';
+import '../../../core/widgets/enhanced_error_display.dart';
+import '../../../core/widgets/loading_skeleton.dart';
 import '../logic/properties_notifier.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
@@ -31,7 +32,7 @@ class PropertiesScreen extends ConsumerWidget {
       body: propertiesAsync.when(
         data: (properties) {
           if (properties.isEmpty) {
-            return EmptyState(
+            return EnhancedEmptyState(
               icon: Icons.home_work,
               title: 'No Properties Yet',
               message: 'Start building your rental portfolio by adding your first property.',
@@ -89,8 +90,8 @@ class PropertiesScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => ErrorDisplay(
+        loading: () => const ListSkeleton(itemCount: 5),
+        error: (error, _) => EnhancedErrorDisplay(
           message: error.toString(),
           onRetry: () => ref.refresh(propertiesNotifierProvider),
         ),

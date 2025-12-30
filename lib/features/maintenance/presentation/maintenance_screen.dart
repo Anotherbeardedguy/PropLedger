@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/maintenance_task.dart';
+import '../../../core/widgets/enhanced_empty_state.dart';
+import '../../../core/widgets/enhanced_error_display.dart';
+import '../../../core/widgets/loading_skeleton.dart';
 import '../logic/maintenance_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import 'add_edit_maintenance_screen.dart';
@@ -50,20 +53,18 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
           });
 
           if (tasks.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.build_circle, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No maintenance tasks'),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap + to add your first task',
-                    style: TextStyle(color: Colors.grey),
+            return EnhancedEmptyState(
+              icon: Icons.build_circle,
+              title: 'No Maintenance Tasks',
+              message: 'Keep track of property repairs and maintenance work.',
+              actionLabel: 'Add Task',
+              onAction: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddEditMaintenanceScreen(),
                   ),
-                ],
-              ),
+                );
+              },
             );
           }
 
@@ -122,9 +123,10 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Error: $error'),
+        loading: () => const ListSkeleton(itemCount: 5),
+        error: (error, _) => EnhancedErrorDisplay(
+          message: error.toString(),
+          onRetry: () => ref.refresh(maintenanceNotifierProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton(

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/loan.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/enhanced_empty_state.dart';
+import '../../../core/widgets/enhanced_error_display.dart';
+import '../../../core/widgets/loading_skeleton.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/loans_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
@@ -43,20 +46,12 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
           loans.sort((a, b) => b.created.compareTo(a.created));
 
           if (loans.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.account_balance, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No loans found'),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap + to add your first loan',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
+            return EnhancedEmptyState(
+              icon: Icons.account_balance,
+              title: 'No Loans Yet',
+              message: 'Track your property financing and loan payments.',
+              actionLabel: 'Add Loan',
+              onAction: () => _navigateToAddLoan(context),
             );
           }
 
@@ -153,9 +148,10 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Error: $error'),
+        loading: () => const ListSkeleton(itemCount: 5),
+        error: (error, _) => EnhancedErrorDisplay(
+          message: error.toString(),
+          onRetry: () => ref.refresh(loansNotifierProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton(

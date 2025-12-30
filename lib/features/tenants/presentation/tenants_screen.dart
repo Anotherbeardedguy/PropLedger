@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/widgets/enhanced_empty_state.dart';
+import '../../../core/widgets/enhanced_error_display.dart';
+import '../../../core/widgets/loading_skeleton.dart';
 import '../logic/tenants_notifier.dart';
 import 'tenant_detail_screen.dart';
 import 'tenant_form_screen.dart';
@@ -17,49 +20,25 @@ class TenantsScreen extends ConsumerWidget {
         title: const Text('Tenants'),
       ),
       body: tenantsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(tenantsNotifierProvider(null).notifier).loadTenants();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        loading: () => const ListSkeleton(itemCount: 5),
+        error: (error, stack) => EnhancedErrorDisplay(
+          message: error.toString(),
+          onRetry: () => ref.read(tenantsNotifierProvider(null).notifier).loadTenants(),
         ),
         data: (tenants) {
           if (tenants.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 80,
-                    color: Colors.grey[400],
+            return EnhancedEmptyState(
+              icon: Icons.people_outline,
+              title: 'No Tenants Yet',
+              message: 'Add your first tenant to start managing your rental occupancy.',
+              actionLabel: 'Add Tenant',
+              onAction: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const TenantFormScreen(),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No tenants yet',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add your first tenant to get started',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
+                );
+              },
             );
           }
 
