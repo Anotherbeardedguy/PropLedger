@@ -11,6 +11,7 @@ import '../../expenses/presentation/expenses_screen.dart';
 import '../../maintenance/presentation/maintenance_screen.dart';
 import '../../loans/presentation/loans_screen.dart';
 import '../../documents/presentation/documents_screen.dart';
+import '../../settings/presentation/settings_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -30,6 +31,10 @@ class DashboardScreen extends ConsumerWidget {
               const OutstandingRentCard(),
               const SizedBox(height: 16),
               const UpcomingPaymentsCard(),
+              const SizedBox(height: 16),
+              const OpenTasksCard(),
+              const SizedBox(height: 16),
+              const ExpiringLeasesCard(),
               const SizedBox(height: 24),
               const Text(
                 'Quick Actions',
