@@ -2,7 +2,7 @@ class Document {
   final String id;
   final String documentType;
   final String file;
-  final String fileName;
+  final String? fileName;
   final DateTime? expiryDate;
   final String? notes;
   final DateTime created;
@@ -12,7 +12,7 @@ class Document {
     required this.id,
     required this.documentType,
     required this.file,
-    required this.fileName,
+    this.fileName,
     this.expiryDate,
     this.notes,
     required this.created,

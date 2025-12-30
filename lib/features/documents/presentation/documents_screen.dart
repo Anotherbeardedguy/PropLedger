@@ -165,7 +165,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text('File: ${document.fileName}'),
+            Text('File: ${document.fileName ?? "Unknown"}'),
             if (document.expiryDate != null) ...[
               const SizedBox(height: 4),
               Row(
@@ -237,7 +237,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailRow('File Name', document.fileName),
+              _buildDetailRow('File Name', document.fileName ?? 'Unknown'),
               _buildDetailRow('File Path', document.file),
               if (document.expiryDate != null)
                 _buildDetailRow(
