@@ -2,25 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/rent_payment.dart';
+import '../../tenants/logic/tenants_notifier.dart';
+import '../../properties/logic/units_notifier.dart';
 import '../logic/rent_payments_notifier.dart';
 import 'payment_form_screen.dart';
 
-class RentPaymentsScreen extends ConsumerWidget {
+enum PaymentFilter { all, outstanding, paid, late }
+
+class RentPaymentsScreen extends ConsumerStatefulWidget {
   const RentPaymentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RentPaymentsScreen> createState() => _RentPaymentsScreenState();
+}
+
+class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
+  PaymentFilter _currentFilter = PaymentFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
+    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
+    final unitsAsync = ref.watch(unitsNotifierProvider(null));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Rent Payments'),
         actions: [
-          IconButton(
+          PopupMenuButton<PaymentFilter>(
             icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // TODO: Filter functionality
+            onSelected: (filter) {
+              setState(() {
+                _currentFilter = filter;
+              });
             },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: PaymentFilter.all,
+                child: Row(
+                  children: [
+                    Icon(Icons.all_inclusive),
+                    SizedBox(width: 12),
+                    Text('All Payments'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: PaymentFilter.outstanding,
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text('Outstanding'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: PaymentFilter.late,
+                child: Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Late Payments'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: PaymentFilter.paid,
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green),
+                    SizedBox(width: 12),
+                    Text('Paid'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -44,7 +101,21 @@ class RentPaymentsScreen extends ConsumerWidget {
           ),
         ),
         data: (payments) {
-          if (payments.isEmpty) {
+          // Apply filter
+          final filteredPayments = payments.where((payment) {
+            switch (_currentFilter) {
+              case PaymentFilter.all:
+                return true;
+              case PaymentFilter.outstanding:
+                return payment.status != PaymentStatus.paid;
+              case PaymentFilter.late:
+                return payment.status == PaymentStatus.late;
+              case PaymentFilter.paid:
+                return payment.status == PaymentStatus.paid;
+            }
+          }).toList();
+
+          if (filteredPayments.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -56,7 +127,9 @@ class RentPaymentsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No payments yet',
+                    _currentFilter == PaymentFilter.all 
+                        ? 'No payments yet'
+                        : 'No ${_currentFilter.name} payments',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Colors.grey[600],
                         ),
@@ -83,64 +156,59 @@ class RentPaymentsScreen extends ConsumerWidget {
             );
           }
 
-          final outstanding = payments.where((p) => p.status != PaymentStatus.paid).toList();
-          final paid = payments.where((p) => p.status == PaymentStatus.paid).toList();
-
-          return Column(
-            children: [
-              if (outstanding.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  child: Row(
+          return tenantsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(child: Text('Error loading tenants: $error')),
+            data: (tenants) {
+              return unitsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error loading units: $error')),
+                data: (units) {
+                  final outstanding = filteredPayments.where((p) => p.status != PaymentStatus.paid).toList();
+                  
+                  return Column(
                     children: [
-                      const Icon(Icons.warning_amber, color: Colors.orange),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Outstanding Payments',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                      if (outstanding.isNotEmpty && _currentFilter != PaymentFilter.paid)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.warning_amber, color: Colors.orange),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Outstanding Payments',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${outstanding.length} payment(s) - \$${outstanding.fold(0.0, (sum, p) => sum + p.amount).toStringAsFixed(2)}',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${outstanding.length} payment(s) - \$${outstanding.fold(0.0, (sum, p) => sum + p.amount).toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              Expanded(
-                child: DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    children: [
-                      const TabBar(
-                        tabs: [
-                          Tab(text: 'Outstanding'),
-                          Tab(text: 'Paid'),
-                        ],
-                      ),
                       Expanded(
-                        child: TabBarView(
-                          children: [
-                            _buildPaymentList(context, ref, outstanding, isOutstanding: true),
-                            _buildPaymentList(context, ref, paid, isOutstanding: false),
-                          ],
+                        child: _buildPaymentList(
+                          filteredPayments, 
+                          tenants, 
+                          units,
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ),
-            ],
+                  );
+                },
+              );
+            },
           );
         },
       ),
@@ -157,11 +225,15 @@ class RentPaymentsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentList(BuildContext context, WidgetRef ref, List<RentPayment> payments, {required bool isOutstanding}) {
+  Widget _buildPaymentList(
+    List<RentPayment> payments,
+    List<dynamic> tenants,
+    List<dynamic> units,
+  ) {
     if (payments.isEmpty) {
       return Center(
         child: Text(
-          isOutstanding ? 'No outstanding payments' : 'No paid payments',
+          'No payments',
           style: TextStyle(color: Colors.grey[600]),
         ),
       );
@@ -173,37 +245,67 @@ class RentPaymentsScreen extends ConsumerWidget {
       itemBuilder: (context, index) {
         final payment = payments[index];
         final isLate = payment.status == PaymentStatus.late;
+        final isPaid = payment.status == PaymentStatus.paid;
+        
+        // Get tenant and unit info
+        final tenant = tenants.firstWhere(
+          (t) => t.id == payment.tenantId,
+          orElse: () => null,
+        );
+        final unit = units.firstWhere(
+          (u) => u.id == payment.unitId,
+          orElse: () => null,
+        );
         
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
-              backgroundColor: payment.status == PaymentStatus.paid
+              backgroundColor: isPaid
                   ? Colors.green
                   : isLate
                       ? Colors.red
                       : Colors.orange,
               child: Icon(
-                payment.status == PaymentStatus.paid
-                    ? Icons.check
-                    : Icons.payment,
+                isPaid ? Icons.check : Icons.payment,
                 color: Colors.white,
               ),
             ),
             title: Text(
-              '\$${payment.amount.toStringAsFixed(2)}',
+              tenant?.name ?? 'Unknown Tenant',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 18,
               ),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 8),
+                if (unit != null)
+                  Text(
+                    'Unit: ${unit.unitName}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  '\$${payment.amount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text('Due: ${DateFormat('MMM dd, yyyy').format(payment.dueDate)}'),
                 if (payment.paidDate != null)
-                  Text('Paid: ${DateFormat('MMM dd, yyyy').format(payment.paidDate!)}'),
+                  Text(
+                    'Paid: ${DateFormat('MMM dd, yyyy').format(payment.paidDate!)}',
+                    style: const TextStyle(color: Colors.green),
+                  ),
                 if (isLate && payment.daysOverdue > 0)
                   Text(
                     '${payment.daysOverdue} days overdue',
@@ -214,11 +316,11 @@ class RentPaymentsScreen extends ConsumerWidget {
                   ),
               ],
             ),
-            trailing: isOutstanding
+            trailing: !isPaid
                 ? IconButton(
                     icon: const Icon(Icons.check_circle_outline, color: Colors.green),
                     onPressed: () {
-                      _markAsPaid(context, ref, payment);
+                      _markAsPaid(context, payment);
                     },
                   )
                 : Chip(
@@ -238,7 +340,7 @@ class RentPaymentsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _markAsPaid(BuildContext context, WidgetRef ref, RentPayment payment) async {
+  Future<void> _markAsPaid(BuildContext context, RentPayment payment) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

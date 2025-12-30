@@ -3,6 +3,7 @@ import '../../../data/models/tenant.dart';
 import '../../../data/repositories/providers.dart';
 import '../../../data/repositories/tenant_repository.dart';
 import '../../properties/logic/units_notifier.dart';
+import '../../rent_payments/logic/rent_payments_notifier.dart';
 
 class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
   final TenantRepository _repository;
@@ -35,6 +36,8 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
       
       await loadTenants();
       _ref.invalidate(unitsNotifierProvider);
+      // Refresh rent payments to show newly generated payments
+      _ref.invalidate(rentPaymentsNotifierProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -50,6 +53,8 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
       
       await loadTenants();
       _ref.invalidate(unitsNotifierProvider);
+      // Refresh rent payments to show regenerated payments
+      _ref.invalidate(rentPaymentsNotifierProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
