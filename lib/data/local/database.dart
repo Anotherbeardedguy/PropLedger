@@ -223,15 +223,35 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           // Migrate to v3: Create DocumentLinks table and update Documents
           await m.createTable(documentLinks);
+          
           // Add fileName column to Documents (nullable, so no default needed)
-          await m.addColumn(documents, documents.fileName);
-          await m.addColumn(units, units.upkeepAmount);
+          // Wrapped in try-catch to handle partial migrations
+          try {
+            await m.addColumn(documents, documents.fileName);
+          } catch (e) {
+            // Column may already exist from partial migration
+            print('fileName column may already exist: $e');
+          }
+          
+          try {
+            await m.addColumn(units, units.upkeepAmount);
+          } catch (e) {
+            print('upkeepAmount column may already exist: $e');
+          }
           
           // Add leaseTerm column to tenants table with default value
-          await m.addColumn(tenants, tenants.leaseTerm);
+          try {
+            await m.addColumn(tenants, tenants.leaseTerm);
+          } catch (e) {
+            print('leaseTerm column may already exist: $e');
+          }
           
           // Add unitId column to loans table
-          await m.addColumn(loans, loans.unitId);
+          try {
+            await m.addColumn(loans, loans.unitId);
+          } catch (e) {
+            print('unitId column may already exist: $e');
+          }
           
           // Note: Making columns nullable (propertyId) is handled automatically by Drift
           // as it doesn't require data migration, just schema changes
