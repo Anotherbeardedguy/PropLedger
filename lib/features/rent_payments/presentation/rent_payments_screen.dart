@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/rent_payment.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
 import '../../tenants/logic/tenants_notifier.dart';
 import '../../properties/logic/units_notifier.dart';
 import '../logic/rent_payments_notifier.dart';
@@ -20,8 +22,9 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
   PaymentFilter _currentFilter = PaymentFilter.all;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
+    final settings = ref.watch(settingsNotifierProvider);
     final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
     final unitsAsync = ref.watch(unitsNotifierProvider(null));
 
@@ -188,7 +191,7 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
                                       ),
                                     ),
                                     Text(
-                                      '${outstanding.length} payment(s) - \$${outstanding.fold(0.0, (sum, p) => sum + p.amount).toStringAsFixed(2)}',
+                                      '${outstanding.length} payment(s) - ${CurrencyFormatter.format(outstanding.fold(0.0, (sum, p) => sum + p.amount), settings.currency)}',
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                   ],
@@ -293,13 +296,15 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
                   ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${payment.amount.toStringAsFixed(2)}',
+                  'Due: ${DateFormatter.format(payment.dueDate, settings.dateFormat)}',
+                ),
+                Text(
+                  CurrencyFormatter.format(payment.amount, settings.currency),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text('Due: ${DateFormat('MMM dd, yyyy').format(payment.dueDate)}'),
                 if (payment.paidDate != null)
                   Text(

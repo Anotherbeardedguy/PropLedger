@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/loan.dart';
-import '../../../data/models/property.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/loans_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import 'add_edit_loan_screen.dart';
@@ -19,8 +20,9 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
   String? _selectedPropertyId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final loansAsync = ref.watch(loansNotifierProvider);
+    final settings = ref.watch(settingsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
 
     return Scaffold(
@@ -97,7 +99,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
                           children: [
                             const Text('Total Borrowed:'),
                             Text(
-                              '\$${totalOriginal.toStringAsFixed(2)}',
+                              CurrencyFormatter.format(totalOriginal, settings.currency),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -111,7 +113,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
                           children: [
                             const Text('Current Balance:'),
                             Text(
-                              '\$${totalBalance.toStringAsFixed(2)}',
+                              CurrencyFormatter.format(totalBalance, settings.currency),
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -126,7 +128,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
                           children: [
                             const Text('Total Paid:'),
                             Text(
-                              '\$${(totalOriginal - totalBalance).toStringAsFixed(2)}',
+                              CurrencyFormatter.format(totalOriginal - totalBalance, settings.currency),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -145,7 +147,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
                   itemCount: loans.length,
                   itemBuilder: (context, index) {
                     final loan = loans[index];
-                    return _buildLoanCard(context, loan, propertiesAsync);
+                    return _buildLoanCard(context, loan, propertiesAsync, settings);
                   },
                 ),
               ),
@@ -164,7 +166,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
     );
   }
 
-  Widget _buildLoanCard(BuildContext context, Loan loan, AsyncValue<List<Property>> propertiesAsync) {
+  Widget _buildLoanCard(BuildContext context, Loan loan, AsyncValue<List<Property>> propertiesAsync, Settings settings) {
     final property = propertiesAsync.maybeWhen(
       data: (properties) => properties.cast<Property?>().firstWhere(
             (p) => p?.id == loan.propertyId,
@@ -214,7 +216,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '\$${loan.currentBalance.toStringAsFixed(0)}',
+              CurrencyFormatter.format(loan.currentBalance, settings.currency),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -222,7 +224,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
               ),
             ),
             Text(
-              'of \$${loan.originalAmount.toStringAsFixed(0)}',
+              CurrencyFormatter.format(loan.originalAmount, settings.currency),
               style: const TextStyle(fontSize: 10, color: Colors.grey),
             ),
           ],

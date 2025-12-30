@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/maintenance_task.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
 import '../../maintenance/logic/maintenance_notifier.dart';
 import '../../maintenance/presentation/maintenance_screen.dart';
 
@@ -9,6 +12,7 @@ class OpenTasksCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(maintenanceNotifierProvider);
+    final settings = ref.watch(settingsNotifierProvider);
 
     return tasksAsync.when(
       data: (tasks) {
@@ -79,7 +83,7 @@ class OpenTasksCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '${overdueTasks.length}',
+                              DateFormatter.format(overdueTasks.first.dueDate!, settings.dateFormat),
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,

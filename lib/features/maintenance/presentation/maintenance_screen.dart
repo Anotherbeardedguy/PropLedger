@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/maintenance_task.dart';
-import '../../../data/models/property.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/maintenance_notifier.dart';
+import 'maintenance_form_screen.dart';
 import '../../properties/logic/properties_notifier.dart';
 import 'add_edit_maintenance_screen.dart';
 
@@ -20,8 +22,9 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
   TaskPriority? _selectedPriority;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(maintenanceNotifierProvider);
+    final settings = ref.watch(settingsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
 
     return Scaffold(
