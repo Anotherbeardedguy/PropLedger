@@ -55,6 +55,7 @@ dependencies:
 
   # File Handling
   file_picker: ^8.1.4
+  shared_preferences: ^2.3.3
   
   # Code Generation
   freezed_annotation: ^2.4.1
