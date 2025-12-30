@@ -198,6 +198,30 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 2;
 
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from == 1 && to == 2) {
+          // Add upkeepAmount column to units table
+          await m.addColumn(units, units.upkeepAmount);
+          
+          // Add leaseTerm column to tenants table with default value
+          await m.addColumn(tenants, tenants.leaseTerm);
+          
+          // Add unitId column to loans table
+          await m.addColumn(loans, loans.unitId);
+          
+          // Note: Making columns nullable (propertyId) is handled automatically by Drift
+          // as it doesn't require data migration, just schema changes
+        }
+      },
+    );
+  }
+
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
       final dbFolder = await getApplicationDocumentsDirectory();
