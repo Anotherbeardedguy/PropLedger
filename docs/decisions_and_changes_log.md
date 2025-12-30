@@ -1,5 +1,66 @@
 # Decisions and Changes Log
 
+## 2024-12-30: Backend Migration from PocketBase to Firebase
+
+### Context
+Project architecture updated to use Firebase instead of PocketBase as the backend service. This decision aligns with:
+- Better integration with Google Cloud ecosystem
+- More mature authentication system
+- Built-in Cloud Functions for serverless logic
+- Native support for push notifications (FCM)
+- Automatic HTTPS and security
+- Better scalability for future growth
+
+### Changes
+
+#### Documentation Updates
+- **README.md**: Updated tech stack, setup instructions, security section
+- **docs/TODO.md**: Phase 1 backend setup, collections, authentication
+- **rental_portfolio_app_development_document.md**: Backend architecture, infrastructure
+- **docs/USER_STORIES.md**: Storage references updated to Cloud Storage
+- **TESTING.md**: Testing instructions updated for Firebase
+
+#### Backend Architecture
+**Previous**: PocketBase (self-hosted)
+- REST API
+- Self-hosted on VPS
+- Manual backup configuration
+
+**New**: Firebase (Google Cloud)
+- Firestore (NoSQL database)
+- Firebase Auth (authentication)
+- Cloud Functions (serverless)
+- Cloud Storage (file uploads)
+- Firebase Cloud Messaging (notifications)
+- Automatic backups and scaling
+
+#### Future Code Changes Required
+- Rename `pocketbase_client.dart` → `firebase_client.dart`
+- Update `auth_repository.dart` to use Firebase Auth SDK
+- Replace `env.dart` PocketBase URLs with Firebase config
+- Add Firebase dependencies to `pubspec.yaml`:
+  - `firebase_core`
+  - `firebase_auth`
+  - `cloud_firestore`
+  - `firebase_storage`
+  - `firebase_messaging`
+
+#### Migration Notes
+- Local-first architecture remains unchanged
+- Drift database still primary data source
+- Firebase sync will be implemented in future phase
+- Current local-only implementation unaffected
+
+### Rationale
+1. **Better ecosystem**: Firebase provides complete backend solution
+2. **Authentication**: More mature and secure auth system
+3. **Notifications**: Built-in FCM support for payment reminders
+4. **Scalability**: Auto-scaling with Firebase
+5. **Free tier**: Generous free tier for development
+6. **Documentation**: Extensive documentation and community support
+
+---
+
 ## 2024-12-30: Automated Rent Payment System - Version 1.1.0
 
 ### Context

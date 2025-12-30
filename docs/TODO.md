@@ -21,22 +21,24 @@
   - [ ] path_provider
   - [ ] intl (internationalization)
 
-### PocketBase Backend
-- [ ] Set up PocketBase instance (local or VPS)
-- [ ] Create admin account
-- [ ] Configure HTTPS/SSL certificate
-- [ ] Set up automated daily backups
-- [ ] Document PocketBase URL and credentials
+### Firebase Backend
+- [ ] Create Firebase project at console.firebase.google.com
+- [ ] Add Android app to Firebase project
+- [ ] Download and configure google-services.json
+- [ ] Enable Firebase Authentication (Email/Password)
+- [ ] Enable Cloud Firestore
+- [ ] Configure Firestore security rules
+- [ ] Set up automated backups (Firestore export)
+- [ ] Enable Firebase Cloud Messaging (FCM) for notifications
 
 ### Authentication System
-- [ ] Define user collection in PocketBase
-- [ ] Implement PocketBase auth API integration
+- [ ] Implement Firebase Auth integration
 - [ ] Create login screen UI
-- [ ] Implement JWT token storage (secure_storage)
-- [ ] Add token refresh logic
+- [ ] Implement secure token storage (flutter_secure_storage)
+- [ ] Add token refresh logic with Firebase Auth
 - [ ] Build logout functionality
 - [ ] Add biometric authentication (optional)
-- [ ] Handle auth state management
+- [ ] Handle auth state management with Firebase Auth streams
 
 ---
 
@@ -70,19 +72,19 @@
 - [x] Implement DAOs for all entities (Property, Unit, Tenant, RentPayment, Loan)
 - [x] Add database migrations strategy (v1 → v2)
 
-### PocketBase Collections
+### Firestore Collections
 - [ ] Create Property collection
-- [ ] Create Unit collection with property relation
-- [ ] Create Tenant collection with unit relation
+- [ ] Create Unit collection (subcollection or top-level with property reference)
+- [ ] Create Tenant collection with unit reference
 - [ ] Create RentPayment collection
 - [ ] Create Expense collection
 - [ ] Create MaintenanceTask collection
 - [ ] Create Loan collection
 - [ ] Create LoanPayment collection
-- [ ] Create Document collection with file field
-- [ ] Configure collection rules (auth, validation)
-- [ ] Set up cascade delete rules
-- [ ] Test all CRUD operations via PocketBase admin
+- [ ] Create Document collection with Cloud Storage references
+- [ ] Configure Firestore security rules (auth, validation)
+- [ ] Set up cascade delete with Cloud Functions
+- [ ] Test all CRUD operations via Firebase Console
 
 ---
 
@@ -105,7 +107,7 @@
 - [ ] Implement conflict resolution strategy
 - [ ] Add retry logic with exponential backoff
 
-**Note**: Local-only repositories completed. PocketBase sync implementation deferred.
+**Note**: Local-only repositories completed. Firebase sync implementation deferred.
 
 ---
 
@@ -137,7 +139,7 @@
 - [x] Test unit occupancy status updates
 - [x] Test standalone units (no property)
 - [ ] Test offline CRUD operations (local-only mode)
-- [ ] Test sync after offline changes (PocketBase - future)
+- [ ] Test sync after offline changes (Firebase - future)
 
 ---
 

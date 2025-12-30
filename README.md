@@ -18,7 +18,7 @@ PropLedger is a Flutter-based Android application designed for single owner/oper
 - **Financial Tracking**: Rent payments, expenses, loans
 - **Operations**: Maintenance tasks, document storage
 - **Analytics**: Dashboard KPIs, cash flow analysis
-- **Offline-First**: SQLite local storage with PocketBase sync
+- **Offline-First**: SQLite local storage with Firebase sync
 
 ## Tech Stack
 
@@ -29,9 +29,9 @@ PropLedger is a Flutter-based Android application designed for single owner/oper
 - **Local Database**: SQLite/Drift
 
 ### Backend
-- **BaaS**: PocketBase (self-hosted)
-- **API**: REST
-- **Authentication**: Email + Password (single user)
+- **BaaS**: Firebase (Google Cloud)
+- **Services**: Firestore, Firebase Auth, Cloud Functions, FCM
+- **Authentication**: Firebase Auth (Email + Password, single user)
 
 ## Project Structure
 
@@ -99,7 +99,7 @@ See `docs/TODO.md` for detailed development roadmap.
 ### Prerequisites
 - Flutter SDK (stable channel)
 - Android Studio / VS Code
-- PocketBase instance (self-hosted or cloud)
+- Firebase project (free tier available)
 
 ### Setup
 ```bash
@@ -113,17 +113,20 @@ flutter pub get
 flutter run
 ```
 
-### PocketBase Configuration
-1. Set up PocketBase instance
-2. Configure collections (see `docs/DATA_MODELS.md`)
-3. Update `.env` with PocketBase URL and credentials
+### Firebase Configuration
+1. Create Firebase project at https://console.firebase.google.com
+2. Add Android app to Firebase project
+3. Download `google-services.json` and place in `android/app/`
+4. Enable Firebase Auth and Firestore
+5. Configure Firestore security rules (see `docs/FIREBASE_SETUP.md`)
 
 ## Security
 
-- Single-user authentication
+- Single-user authentication with Firebase Auth
 - Biometric unlock support
 - Secure token storage (flutter_secure_storage)
-- HTTPS enforced for all API calls
+- Firebase security rules for data access control
+- HTTPS enforced by default with Firebase
 - No sensitive data in logs
 
 ## Success Criteria

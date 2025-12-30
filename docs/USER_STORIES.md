@@ -228,7 +228,7 @@
 **Acceptance Criteria**
 - Capture photo or select from gallery
 - View attached receipt in expense detail
-- Store securely in PocketBase
+- Store securely in Firebase Cloud Storage
 - Can replace or delete receipt
 
 ### US-020: View Expense History

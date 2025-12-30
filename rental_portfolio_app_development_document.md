@@ -11,7 +11,7 @@ Single owner/operator managing a small-to-medium rental portfolio.
 **Platform**  
 - Android only
 - Built with Flutter
-- Backend: PocketBase (self-hosted)
+- Backend: Firebase (Google Cloud)
 
 **Design Philosophy**  
 - Manual-first, low automation
@@ -30,17 +30,20 @@ Single owner/operator managing a small-to-medium rental portfolio.
 - Local storage: SQLite / Drift
 
 ### Backend
-- PocketBase
-- REST API usage (no realtime required initially)
-- Authentication: email + password (single user)
+- Firebase (Google Cloud)
+- Firestore for database
+- Firebase Auth for authentication (email + password, single user)
+- Cloud Functions for server-side logic
+- Firebase Cloud Messaging (FCM) for notifications
 
 ### Infrastructure
-- PocketBase hosted on VPS or local server
-- Daily automated backups
+- Firebase project (free tier for development)
+- Firestore automated backups
+- Cloud Storage for file uploads
 
 ---
 
-## 3. Core Data Models (PocketBase Collections)
+## 3. Core Data Models (Firestore Collections)
 
 ### Property
 - id
@@ -195,8 +198,8 @@ Bottom navigation with 4–5 primary sections.
 
 - Single-user assumption
 - Local biometric unlock
-- PocketBase auth token securely stored
-- HTTPS enforced
+- Firebase Auth tokens securely stored
+- HTTPS enforced by default with Firebase
 
 ---
 
@@ -223,9 +226,10 @@ Excluded:
 
 ### Phase 1 – Foundation
 - [ ] Set up Flutter project
-- [ ] Set up PocketBase instance
-- [ ] Define collections & rules
-- [ ] Implement authentication
+- [ ] Create Firebase project
+- [ ] Configure Firebase for Android
+- [ ] Define Firestore collections & security rules
+- [ ] Implement Firebase Authentication
 
 ### Phase 2 – Core Data
 - [ ] Property CRUD
