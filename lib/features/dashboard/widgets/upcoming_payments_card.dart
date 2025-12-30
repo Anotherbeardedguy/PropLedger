@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../data/repositories/providers.dart';
+import '../../../data/models/rent_payment.dart';
+import '../../rent_payments/logic/rent_payments_notifier.dart';
 import '../../rent_payments/presentation/rent_payments_screen.dart';
 
 class UpcomingPaymentsCard extends ConsumerWidget {
@@ -9,19 +10,31 @@ class UpcomingPaymentsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder(
-      future: ref.read(paymentGeneratorServiceProvider).getUpcomingPayments(daysAhead: 30),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
+    final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
 
-        final upcomingPayments = snapshot.data ?? [];
+    return paymentsAsync.when(
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Error: $error'),
+        ),
+      ),
+      data: (allPayments) {
+        // Filter for upcoming payments (next 30 days, unpaid)
+        final now = DateTime.now();
+        final futureDate = now.add(const Duration(days: 30));
+        
+        final upcomingPayments = allPayments.where((payment) {
+          if (payment.status == PaymentStatus.paid) return false;
+          return payment.dueDate.isAfter(now) && payment.dueDate.isBefore(futureDate);
+        }).toList()
+          ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
         if (upcomingPayments.isEmpty) {
           return Card(

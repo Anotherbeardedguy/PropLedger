@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/repositories/providers.dart';
 import '../../../data/models/rent_payment.dart';
+import '../../rent_payments/logic/rent_payments_notifier.dart';
 import '../../rent_payments/presentation/rent_payments_screen.dart';
 
 class OutstandingRentCard extends ConsumerWidget {
@@ -9,19 +10,25 @@ class OutstandingRentCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder(
-      future: ref.read(rentPaymentRepositoryProvider).getOutstandingPayments(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
+    final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
 
-        final outstandingPayments = snapshot.data ?? [];
+    return paymentsAsync.when(
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Error: $error'),
+        ),
+      ),
+      data: (allPayments) {
+        final outstandingPayments = allPayments
+            .where((p) => p.status != PaymentStatus.paid)
+            .toList();
         final totalOutstanding = outstandingPayments.fold(0.0, (sum, p) => sum + p.amount);
         
         // Calculate late fees
