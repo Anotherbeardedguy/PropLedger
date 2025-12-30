@@ -45,6 +45,8 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               const UpcomingPaymentsCard(),
               const SizedBox(height: 16),
+              const PortfolioAnalyticsCard(),
+              const SizedBox(height: 16),
               const OpenTasksCard(),
               const SizedBox(height: 16),
               const ExpiringLeasesCard(),
