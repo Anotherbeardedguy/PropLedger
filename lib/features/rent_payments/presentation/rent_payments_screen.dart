@@ -248,11 +248,11 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
         final isPaid = payment.status == PaymentStatus.paid;
         
         // Get tenant and unit info
-        final tenant = tenants.firstWhere(
+        final tenant = tenants.cast<dynamic>().firstWhere(
           (t) => t.id == payment.tenantId,
           orElse: () => null,
         );
-        final unit = units.firstWhere(
+        final unit = units.cast<dynamic>().firstWhere(
           (u) => u.id == payment.unitId,
           orElse: () => null,
         );
