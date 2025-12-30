@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/properties_notifier.dart';
 import 'property_form_screen.dart';
 import 'widgets/units_tab.dart';
+import 'widgets/tenants_tab.dart';
 
 class PropertyDetailScreen extends ConsumerWidget {
   final String propertyId;
@@ -92,7 +93,7 @@ class PropertyDetailScreen extends ConsumerWidget {
               children: [
                 _buildInfoTab(context, property),
                 UnitsTab(propertyId: propertyId),
-                Center(child: Text('Tenants - Coming Soon')),
+                TenantsTab(propertyId: propertyId),
                 Center(child: Text('Loans - Coming Soon')),
               ],
             ),

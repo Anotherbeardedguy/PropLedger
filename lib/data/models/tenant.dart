@@ -4,8 +4,8 @@ class Tenant {
   final String name;
   final String? phone;
   final String? email;
-  final DateTime leaseStart;
-  final DateTime leaseEnd;
+  final DateTime? leaseStart;
+  final DateTime? leaseEnd;
   final double? depositAmount;
   final String? notes;
   final DateTime created;
@@ -17,8 +17,8 @@ class Tenant {
     required this.name,
     this.phone,
     this.email,
-    required this.leaseStart,
-    required this.leaseEnd,
+    this.leaseStart,
+    this.leaseEnd,
     this.depositAmount,
     this.notes,
     required this.created,
@@ -32,8 +32,8 @@ class Tenant {
       name: json['name'] as String,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
-      leaseStart: DateTime.parse(json['lease_start'] as String),
-      leaseEnd: DateTime.parse(json['lease_end'] as String),
+      leaseStart: json['lease_start'] != null ? DateTime.parse(json['lease_start'] as String) : null,
+      leaseEnd: json['lease_end'] != null ? DateTime.parse(json['lease_end'] as String) : null,
       depositAmount: json['deposit_amount'] != null
           ? (json['deposit_amount'] as num).toDouble()
           : null,
@@ -50,8 +50,8 @@ class Tenant {
       'name': name,
       'phone': phone,
       'email': email,
-      'lease_start': leaseStart.toIso8601String(),
-      'lease_end': leaseEnd.toIso8601String(),
+      'lease_start': leaseStart?.toIso8601String(),
+      'lease_end': leaseEnd?.toIso8601String(),
       'deposit_amount': depositAmount,
       'notes': notes,
       'created': created.toIso8601String(),
@@ -60,7 +60,8 @@ class Tenant {
   }
 
   bool get isLeaseExpiring {
-    final daysUntilExpiry = leaseEnd.difference(DateTime.now()).inDays;
+    if (leaseEnd == null) return false;
+    final daysUntilExpiry = leaseEnd!.difference(DateTime.now()).inDays;
     return daysUntilExpiry <= 60 && daysUntilExpiry >= 0;
   }
 

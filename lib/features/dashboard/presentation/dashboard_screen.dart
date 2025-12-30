@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../properties/presentation/properties_screen.dart';
+import '../../tenants/presentation/tenants_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -66,8 +67,13 @@ class DashboardScreen extends ConsumerWidget {
                         context,
                         icon: Icons.people,
                         label: 'Tenants',
-                        onTap: () {},
-                        enabled: false,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const TenantsScreen(),
+                            ),
+                          );
+                        },
                       ),
                       _buildQuickActionCard(
                         context,

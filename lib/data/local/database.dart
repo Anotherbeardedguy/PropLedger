@@ -46,8 +46,8 @@ class Tenants extends Table {
   TextColumn get name => text()();
   TextColumn get phone => text().nullable()();
   TextColumn get email => text().nullable()();
-  DateTimeColumn get leaseStart => dateTime()();
-  DateTimeColumn get leaseEnd => dateTime()();
+  DateTimeColumn get leaseStart => dateTime().nullable()();
+  DateTimeColumn get leaseEnd => dateTime().nullable()();
   RealColumn get depositAmount => real().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get created => dateTime()();
