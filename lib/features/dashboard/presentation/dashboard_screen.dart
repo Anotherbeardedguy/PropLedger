@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/outstanding_rent_card.dart';
 import '../widgets/upcoming_payments_card.dart';
 import '../widgets/portfolio_analytics_card.dart';
+import '../widgets/monthly_cash_flow_card.dart';
+import '../widgets/expense_breakdown_card.dart';
+import '../widgets/property_financial_snapshot_card.dart';
 import '../widgets/open_tasks_card.dart';
 import '../widgets/expiring_leases_card.dart';
 import '../../properties/presentation/properties_screen.dart';
@@ -46,6 +49,12 @@ class DashboardScreen extends ConsumerWidget {
               const UpcomingPaymentsCard(),
               const SizedBox(height: 16),
               const PortfolioAnalyticsCard(),
+              const SizedBox(height: 16),
+              const MonthlyCashFlowCard(),
+              const SizedBox(height: 16),
+              const ExpenseBreakdownCard(),
+              const SizedBox(height: 16),
+              const PropertyFinancialSnapshotCard(),
               const SizedBox(height: 16),
               const OpenTasksCard(),
               const SizedBox(height: 16),
