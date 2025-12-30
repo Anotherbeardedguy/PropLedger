@@ -160,27 +160,43 @@
 
 ---
 
-## Phase 6: Rent Payments Feature
+## Phase 6: Rent Payments Feature ✅ COMPLETED (v1.1.0)
 
 ### UI Screens
-- [ ] Rent payment list
-- [ ] Add rent payment form
-- [ ] Payment history per tenant
-- [ ] Outstanding rent view
+- [x] Rent payment list screen with filtering
+- [x] Add/Edit rent payment form
+- [x] Payment history per tenant
+- [x] Outstanding rent view with filters (All, Outstanding, Late, Paid)
+- [x] Dashboard cards (Outstanding Rent, Upcoming Payments)
+- [x] Real-time UI updates across all screens
 
 ### Business Logic
-- [ ] Record rent payment
-- [ ] Calculate outstanding/late rent
-- [ ] Flag late payments (overdue > 1 day)
-- [ ] Generate rent due dates
-- [ ] Link payments to tenant and unit
-- [ ] Calculate total income
+- [x] Record rent payment
+- [x] Calculate outstanding/late rent
+- [x] Flag late payments (overdue > 1 day)
+- [x] Auto-generate recurring payments based on lease terms (monthly/annually)
+- [x] Payment generator service with one-time setup
+- [x] Late payment interest calculation (5% daily, max 25%)
+- [x] Link payments to tenant and unit
+- [x] Calculate total income
+- [x] Real-time provider invalidation for instant updates
+
+### Enhancements
+- [x] Standalone units (nullable propertyId)
+- [x] Unit-level loans (nullable unitId in loans)
+- [x] Lease term types (monthly/annually)
+- [x] Unit upkeep amount field
+- [x] Database migration strategy (v1 → v2)
 
 ### Testing
-- [ ] Manual test: Record payment
-- [ ] Manual test: View outstanding rent
-- [ ] Verify late payment flagging
-- [ ] Test payment history display
+- [x] Manual test: Record payment
+- [x] Manual test: View outstanding rent
+- [x] Verify late payment flagging
+- [x] Test payment history display
+- [x] Test auto-generation on tenant create/update
+- [x] Test dashboard real-time updates
+- [x] Test payment filtering
+- [x] Verify type safety (orElse null returns)
 
 ---
 
