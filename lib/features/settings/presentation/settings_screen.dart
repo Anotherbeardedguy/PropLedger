@@ -11,46 +11,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  String _currency = 'USD';
-  String _dateFormat = 'MM/dd/yyyy';
-  ThemeMode _themeMode = ThemeMode.system;
-  
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _currency = prefs.getString('currency') ?? 'USD';
-      _dateFormat = prefs.getString('dateFormat') ?? 'MM/dd/yyyy';
-      final themeName = prefs.getString('themeMode') ?? 'system';
-      _themeMode = ThemeMode.values.firstWhere(
-        (e) => e.name == themeName,
-        orElse: () => ThemeMode.system,
-      );
-    });
-  }
-
-  Future<void> _saveCurrency(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('currency', value);
-    setState(() => _currency = value);
-  }
-
-  Future<void> _saveDateFormat(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dateFormat', value);
-    setState(() => _dateFormat = value);
-  }
-
-  Future<void> _saveThemeMode(ThemeMode value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('themeMode', value.name);
-    setState(() => _themeMode = value);
-  }
 
   Future<void> _clearCache() async {
     final confirmed = await showDialog<bool>(
@@ -206,7 +166,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showCurrencyDialog() {
+  void _showCurrencyDialog(String currentCurrency, SettingsNotifier notifier) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -224,10 +184,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return RadioListTile<String>(
               title: Text(currency),
               value: currency,
-              groupValue: _currency,
+              groupValue: currentCurrency,
               onChanged: (value) {
                 if (value != null) {
-                  _saveCurrency(value);
+                  notifier.setCurrency(value);
                   Navigator.pop(context);
                 }
               },
@@ -238,7 +198,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showDateFormatDialog() {
+  void _showDateFormatDialog(String currentFormat, SettingsNotifier notifier) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -253,10 +213,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return RadioListTile<String>(
               title: Text(format),
               value: format,
-              groupValue: _dateFormat,
+              groupValue: currentFormat,
               onChanged: (value) {
                 if (value != null) {
-                  _saveDateFormat(value);
+                  notifier.setDateFormat(value);
                   Navigator.pop(context);
                 }
               },
@@ -267,7 +227,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showThemeDialog() {
+  void _showThemeDialog(ThemeMode currentMode, SettingsNotifier notifier) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -278,10 +238,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return RadioListTile<ThemeMode>(
               title: Text(mode.name.toUpperCase()),
               value: mode,
-              groupValue: _themeMode,
+              groupValue: currentMode,
               onChanged: (value) {
                 if (value != null) {
-                  _saveThemeMode(value);
+                  notifier.setThemeMode(value);
                   Navigator.pop(context);
                 }
               },
