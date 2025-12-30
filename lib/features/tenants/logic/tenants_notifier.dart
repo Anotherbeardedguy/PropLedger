@@ -28,6 +28,11 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
   Future<void> createTenant(Tenant tenant) async {
     try {
       await _repository.create(tenant);
+      
+      // Auto-generate rent payments for the tenant's lease period
+      final paymentGenerator = _ref.read(paymentGeneratorServiceProvider);
+      await paymentGenerator.generatePaymentsForTenant(tenant);
+      
       await loadTenants();
       _ref.invalidate(unitsNotifierProvider);
     } catch (error, stackTrace) {
@@ -38,6 +43,11 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
   Future<void> updateTenant(Tenant tenant) async {
     try {
       await _repository.update(tenant);
+      
+      // Regenerate payments if lease dates or terms changed
+      final paymentGenerator = _ref.read(paymentGeneratorServiceProvider);
+      await paymentGenerator.regeneratePayments(tenant);
+      
       await loadTenants();
       _ref.invalidate(unitsNotifierProvider);
     } catch (error, stackTrace) {

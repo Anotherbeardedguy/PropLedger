@@ -4,6 +4,7 @@ import 'property_repository.dart';
 import 'unit_repository.dart';
 import 'tenant_repository.dart';
 import 'rent_payment_repository.dart';
+import '../../features/rent_payments/logic/payment_generator_service.dart';
 
 final propertyRepositoryProvider = Provider<PropertyRepository>((ref) {
   return PropertyRepository(
@@ -26,5 +27,12 @@ final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
 final rentPaymentRepositoryProvider = Provider<RentPaymentRepository>((ref) {
   return RentPaymentRepository(
     database: ref.watch(databaseProvider),
+  );
+});
+
+final paymentGeneratorServiceProvider = Provider<PaymentGeneratorService>((ref) {
+  return PaymentGeneratorService(
+    paymentRepository: ref.watch(rentPaymentRepositoryProvider),
+    unitRepository: ref.watch(unitRepositoryProvider),
   );
 });
