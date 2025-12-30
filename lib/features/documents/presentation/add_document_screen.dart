@@ -37,7 +37,7 @@ class _AddDocumentScreenState extends ConsumerState<AddDocumentScreen> {
   @override
   Widget build(BuildContext context) {
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
-    final tenantsAsync = ref.watch(tenantsNotifierProvider);
+    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
 
     return Scaffold(
       appBar: AppBar(

@@ -25,7 +25,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
   Widget build(BuildContext context) {
     final documentsAsync = ref.watch(documentsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
-    final tenantsAsync = ref.watch(tenantsNotifierProvider);
+    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
 
     return Scaffold(
       appBar: AppBar(
@@ -195,7 +195,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     );
 
     final isExpired = document.isExpired;
-    final isExpiring = document.isExpiringSoon();
+    final isExpiring = document.isExpiring;
 
     Color? statusColor;
     IconData? statusIcon;
