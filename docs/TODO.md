@@ -355,9 +355,9 @@
 - [x] Outstanding rent summary (card with real-time updates)
 - [x] Upcoming payments card (next 30 days)
 - [x] Quick actions grid (2-column layout)
-- [ ] Upcoming lease expiries widget
+- [x] Upcoming lease expiries widget (60-day window, color-coded urgency)
+- [x] Open maintenance tasks count (with overdue highlighting)
 - [ ] Monthly cash flow chart
-- [ ] Open maintenance tasks count
 - [ ] Recent activity feed
 
 ### Analytics & Reports
