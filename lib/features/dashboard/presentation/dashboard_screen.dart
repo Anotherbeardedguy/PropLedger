@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/outstanding_rent_card.dart';
 import '../widgets/upcoming_payments_card.dart';
+import '../widgets/portfolio_analytics_card.dart';
 import '../widgets/open_tasks_card.dart';
 import '../widgets/expiring_leases_card.dart';
 import '../../properties/presentation/properties_screen.dart';
