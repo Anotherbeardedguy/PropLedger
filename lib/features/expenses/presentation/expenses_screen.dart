@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/expense.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
+import '../logic/expenses_notifier.dart';
+import 'expense_form_screen.dart';
 import '../../../data/models/property.dart';
 import '../logic/expenses_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
@@ -21,8 +25,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
   DateTime? _endDate;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final expensesAsync = ref.watch(expensesNotifierProvider);
+    final settings = ref.watch(settingsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
 
     return Scaffold(
@@ -99,7 +104,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                           ),
                         ),
                         Text(
-                          '\$${totalExpenses.toStringAsFixed(2)}',
+                          CurrencyFormatter.format(totalExpenses, settings.currency),
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

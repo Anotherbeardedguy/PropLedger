@@ -4,6 +4,9 @@ import '../logic/properties_notifier.dart';
 import 'property_form_screen.dart';
 import 'widgets/units_tab.dart';
 import 'widgets/tenants_tab.dart';
+import '../../../data/models/property.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
 
 class PropertyDetailScreen extends ConsumerWidget {
   final String propertyId;
@@ -16,6 +19,7 @@ class PropertyDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final propertyAsync = ref.watch(propertyDetailProvider(propertyId));
+    final settings = ref.watch(settingsNotifierProvider);
 
     return propertyAsync.when(
       data: (property) {
@@ -91,7 +95,7 @@ class PropertyDetailScreen extends ConsumerWidget {
             ),
             body: TabBarView(
               children: [
-                _buildInfoTab(context, property),
+                _buildInfoTab(context, property, settings),
                 UnitsTab(propertyId: propertyId),
                 TenantsTab(propertyId: propertyId),
                 Center(child: Text('Loans - Coming Soon')),
@@ -111,7 +115,7 @@ class PropertyDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoTab(BuildContext context, property) {
+  Widget _buildInfoTab(BuildContext context, property, settings) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -132,17 +136,23 @@ class PropertyDetailScreen extends ConsumerWidget {
                 if (property.purchaseDate != null)
                   _buildInfoRow(
                     'Purchase Date',
-                    '${property.purchaseDate!.year}-${property.purchaseDate!.month.toString().padLeft(2, '0')}-${property.purchaseDate!.day.toString().padLeft(2, '0')}',
+                    DateFormatter.format(property.purchaseDate!),
                   ),
                 if (property.purchasePrice != null)
                   _buildInfoRow(
                     'Purchase Price',
-                    '\$${property.purchasePrice!.toStringAsFixed(2)}',
+                    CurrencyFormatter.format(
+                      property.purchasePrice!,
+                      settings.currency,
+                    ),
                   ),
                 if (property.estimatedValue != null)
                   _buildInfoRow(
                     'Estimated Value',
-                    '\$${property.estimatedValue!.toStringAsFixed(2)}',
+                    CurrencyFormatter.format(
+                      property.estimatedValue!,
+                      settings.currency,
+                    ),
                   ),
                 if (property.notes != null && property.notes!.isNotEmpty)
                   _buildInfoRow('Notes', property.notes!),

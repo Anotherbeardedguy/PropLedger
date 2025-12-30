@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/property.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_display.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/properties_notifier.dart';
 import 'property_detail_screen.dart';
 import 'property_form_screen.dart';
@@ -13,6 +15,7 @@ class PropertiesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
+    final settings = ref.watch(settingsNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +65,10 @@ class PropertiesScreen extends ConsumerWidget {
                     subtitle: Text(property.address),
                     trailing: property.estimatedValue != null
                         ? Text(
-                            '\$${property.estimatedValue!.toStringAsFixed(0)}',
+                            CurrencyFormatter.formatCompact(
+                              property.estimatedValue!,
+                              settings.currency,
+                            ),
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.bold,
