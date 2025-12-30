@@ -1,12 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/document.dart';
+import '../../../data/models/document_link.dart';
 import '../../../data/repositories/document_repository.dart';
+import '../../../data/repositories/document_link_repository.dart';
 import '../../../data/local/database_provider.dart';
 
 class DocumentsNotifier extends StateNotifier<AsyncValue<List<Document>>> {
   final DocumentRepository _repository;
+  final DocumentLinkRepository _linkRepository;
 
-  DocumentsNotifier(this._repository) : super(const AsyncValue.loading()) {
+  DocumentsNotifier(this._repository, this._linkRepository) 
+      : super(const AsyncValue.loading()) {
     loadDocuments();
   }
 
@@ -20,13 +24,20 @@ class DocumentsNotifier extends StateNotifier<AsyncValue<List<Document>>> {
     }
   }
 
-  Future<void> createDocument(Document document) async {
+  Future<void> createDocument(Document document, List<DocumentLink> links) async {
     try {
       await _repository.create(document);
+      for (final link in links) {
+        await _linkRepository.create(link);
+      }
       await loadDocuments();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
+  }
+  
+  Future<List<DocumentLink>> getLinksForDocument(String documentId) async {
+    return await _linkRepository.getByDocumentId(documentId);
   }
 
   Future<void> updateDocument(Document document) async {
@@ -40,20 +51,22 @@ class DocumentsNotifier extends StateNotifier<AsyncValue<List<Document>>> {
 
   Future<void> deleteDocument(String id) async {
     try {
+      await _linkRepository.deleteByDocumentId(id);
       await _repository.delete(id);
       await loadDocuments();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
   }
-
-  List<Document> filterByLinkedEntity(LinkedType type, String linkedId) {
-    return state.maybeWhen(
-      data: (documents) => documents
-          .where((d) => d.linkedType == type && d.linkedId == linkedId)
-          .toList(),
-      orElse: () => [],
+  
+  Future<List<Document>> getDocumentsForEntity(LinkedType type, String linkedId) async {
+    final links = await _linkRepository.getByLinkedEntity(
+      linkedType: type,
+      linkedId: linkedId,
     );
+    final documentIds = links.map((link) => link.documentId).toSet();
+    final allDocuments = await _repository.getAll();
+    return allDocuments.where((doc) => documentIds.contains(doc.id)).toList();
   }
 
   List<Document> getExpiringDocuments({int daysThreshold = 30}) {
@@ -94,8 +107,15 @@ final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
   );
 });
 
+final documentLinkRepositoryProvider = Provider<DocumentLinkRepository>((ref) {
+  return DocumentLinkRepository(
+    database: ref.watch(databaseProvider),
+  );
+});
+
 final documentsNotifierProvider =
     StateNotifierProvider<DocumentsNotifier, AsyncValue<List<Document>>>((ref) {
   final repository = ref.watch(documentRepositoryProvider);
-  return DocumentsNotifier(repository);
+  final linkRepository = ref.watch(documentLinkRepositoryProvider);
+  return DocumentsNotifier(repository, linkRepository);
 });

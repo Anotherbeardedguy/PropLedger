@@ -153,14 +153,25 @@ class LoanPayments extends Table {
 @DataClassName('DocumentEntity')
 class Documents extends Table {
   TextColumn get id => text()();
-  TextColumn get linkedType => text()();
-  TextColumn get linkedId => text()();
   TextColumn get documentType => text()();
   TextColumn get file => text()();
+  TextColumn get fileName => text()();
   DateTimeColumn get expiryDate => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get created => dateTime()();
   DateTimeColumn get updated => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('DocumentLinkEntity')
+class DocumentLinks extends Table {
+  TextColumn get id => text()();
+  TextColumn get documentId => text()();
+  TextColumn get linkedType => text()();
+  TextColumn get linkedId => text()();
+  DateTimeColumn get created => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -189,6 +200,7 @@ class SyncQueue extends Table {
     Loans,
     LoanPayments,
     Documents,
+    DocumentLinks,
     SyncQueue,
   ],
 )
@@ -196,7 +208,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -207,6 +219,12 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1 && to == 2) {
           // Add upkeepAmount column to units table
+        }
+        if (from < 3) {
+          // Migrate to v3: Create DocumentLinks table and update Documents
+          await m.createTable(documentLinks);
+          // Add fileName column to Documents (if migrating from v2)
+          await m.addColumn(documents, documents.fileName);
           await m.addColumn(units, units.upkeepAmount);
           
           // Add leaseTerm column to tenants table with default value

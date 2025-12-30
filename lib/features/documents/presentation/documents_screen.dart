@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/document.dart';
+import '../../../data/models/document_link.dart';
 import '../../../data/models/property.dart';
 import '../../../data/models/unit.dart';
 import '../../../data/models/tenant.dart';
@@ -18,8 +19,9 @@ class DocumentsScreen extends ConsumerStatefulWidget {
 }
 
 class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
-  LinkedType? _selectedLinkedType;
-  String? _selectedLinkedId;
+  // Filtering removed for now - will be added back with proper link support
+  // LinkedType? _selectedLinkedType;
+  // String? _selectedLinkedId;
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +32,10 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Documents'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterDialog(context),
-          ),
-        ],
       ),
       body: documentsAsync.when(
         data: (allDocuments) {
-          var documents = _applyFilters(allDocuments);
+          var documents = allDocuments;
           documents.sort((a, b) => b.created.compareTo(a.created));
 
           if (documents.isEmpty) {
@@ -65,27 +61,6 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
 
           return Column(
             children: [
-              if (_hasActiveFilters())
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.blue.shade50,
-                  child: Row(
-                    children: [
-                      const Icon(Icons.filter_list, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _getFilterSummary(),
-                          style: const TextStyle(color: Colors.blue),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _clearFilters,
-                        child: const Text('Clear'),
-                      ),
-                    ],
-                  ),
-                ),
               if (expired.isNotEmpty)
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -151,36 +126,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     );
   }
 
-  List<Document> _applyFilters(List<Document> documents) {
-    var filtered = documents;
-
-    if (_selectedLinkedType != null && _selectedLinkedId != null) {
-      filtered = filtered
-          .where((d) =>
-              d.linkedType == _selectedLinkedType && d.linkedId == _selectedLinkedId)
-          .toList();
-    }
-
-    return filtered;
-  }
-
-  bool _hasActiveFilters() {
-    return _selectedLinkedType != null && _selectedLinkedId != null;
-  }
-
-  String _getFilterSummary() {
-    if (_selectedLinkedType != null) {
-      return 'Filtered by ${_getLinkedTypeLabel(_selectedLinkedType!)}';
-    }
-    return 'Filtered';
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _selectedLinkedType = null;
-      _selectedLinkedId = null;
-    });
-  }
+  // Filter methods removed - will be re-implemented with proper link support
 
   Widget _buildDocumentCard(
     BuildContext context,
@@ -188,12 +134,6 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     AsyncValue<List<Property>> propertiesAsync,
     AsyncValue<List<Tenant>> tenantsAsync,
   ) {
-    final linkedName = _getLinkedEntityName(
-      document,
-      propertiesAsync,
-      tenantsAsync,
-    );
-
     final isExpired = document.isExpired;
     final isExpiring = document.isExpiring;
 
@@ -225,7 +165,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text('${_getLinkedTypeLabel(document.linkedType)}: $linkedName'),
+            Text('File: ${document.fileName}'),
             if (document.expiryDate != null) ...[
               const SizedBox(height: 4),
               Row(
@@ -259,54 +199,12 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
           icon: const Icon(Icons.delete_outline, color: Colors.red),
           onPressed: () => _confirmDelete(context, document),
         ),
-        onTap: () => _showDocumentDetails(context, document, linkedName),
+        onTap: () => _showDocumentDetails(context, document),
       ),
     );
   }
 
-  String _getLinkedEntityName(
-    Document document,
-    AsyncValue<List<Property>> propertiesAsync,
-    AsyncValue<List<Tenant>> tenantsAsync,
-  ) {
-    switch (document.linkedType) {
-      case LinkedType.property:
-        return propertiesAsync.maybeWhen(
-          data: (properties) {
-            final property = properties.cast<Property?>().firstWhere(
-                  (p) => p?.id == document.linkedId,
-                  orElse: () => null,
-                );
-            return property?.name ?? 'Unknown';
-          },
-          orElse: () => 'Loading...',
-        );
-      case LinkedType.tenant:
-        return tenantsAsync.maybeWhen(
-          data: (tenants) {
-            final tenant = tenants.cast<Tenant?>().firstWhere(
-                  (t) => t?.id == document.linkedId,
-                  orElse: () => null,
-                );
-            return tenant?.name ?? 'Unknown';
-          },
-          orElse: () => 'Loading...',
-        );
-      case LinkedType.unit:
-        return 'Unit';
-    }
-  }
-
-  String _getLinkedTypeLabel(LinkedType type) {
-    switch (type) {
-      case LinkedType.property:
-        return 'Property';
-      case LinkedType.unit:
-        return 'Unit';
-      case LinkedType.tenant:
-        return 'Tenant';
-    }
-  }
+  // Linked entity display methods removed - will be re-implemented with proper link support
 
   IconData _getDocumentTypeIcon(String type) {
     final lower = type.toLowerCase();
@@ -324,30 +222,12 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
     return Icons.insert_drive_file;
   }
 
-  void _showFilterDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter Documents'),
-        content: const Text('Filter by linked entity coming soon'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _clearFilters();
-              Navigator.pop(context);
-            },
-            child: const Text('Clear'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDocumentDetails(BuildContext context, Document document, String linkedName) {
+  void _showDocumentDetails(BuildContext context, Document document) async {
+    final notifier = ref.read(documentsNotifierProvider.notifier);
+    final links = await notifier.getLinksForDocument(document.id);
+    
+    if (!context.mounted) return;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -357,14 +237,22 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailRow('Linked to', linkedName),
-              _buildDetailRow('Type', _getLinkedTypeLabel(document.linkedType)),
+              _buildDetailRow('File Name', document.fileName),
+              _buildDetailRow('File Path', document.file),
               if (document.expiryDate != null)
                 _buildDetailRow(
                   'Expires',
                   DateFormat('MMMM dd, yyyy').format(document.expiryDate!),
                 ),
-              _buildDetailRow('File', document.file),
+              if (links.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Linked to:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                ...links.map((link) => Text('• ${link.linkedType.toString().split('.').last}: ${link.linkedId}')),
+              ],
               if (document.notes != null) ...[
                 const SizedBox(height: 8),
                 const Text(

@@ -15,19 +15,6 @@ class DocumentRepository extends BaseRepository<Document> {
     return entities.map(_entityToModel).toList();
   }
 
-  Future<List<Document>> getByLinkedEntity({
-    required LinkedType linkedType,
-    required String linkedId,
-  }) async {
-    final entities = await (database.select(database.documents)
-          ..where((tbl) =>
-              tbl.linkedType.equals(_linkedTypeToString(linkedType)) &
-              tbl.linkedId.equals(linkedId))
-          ..orderBy([(tbl) => OrderingTerm.desc(tbl.created)]))
-        .get();
-    return entities.map(_entityToModel).toList();
-  }
-
   Future<List<Document>> getExpiringDocuments({int daysAhead = 30}) async {
     final now = DateTime.now();
     final futureDate = now.add(Duration(days: daysAhead));
@@ -101,10 +88,9 @@ class DocumentRepository extends BaseRepository<Document> {
   Document _entityToModel(DocumentEntity entity) {
     return Document(
       id: entity.id,
-      linkedType: _parseLinkedType(entity.linkedType),
-      linkedId: entity.linkedId,
       documentType: entity.documentType,
       file: entity.file,
+      fileName: entity.fileName,
       expiryDate: entity.expiryDate,
       notes: entity.notes,
       created: entity.created,
@@ -115,37 +101,13 @@ class DocumentRepository extends BaseRepository<Document> {
   DocumentsCompanion _modelToCompanion(Document document) {
     return DocumentsCompanion(
       id: Value(document.id),
-      linkedType: Value(_linkedTypeToString(document.linkedType)),
-      linkedId: Value(document.linkedId),
       documentType: Value(document.documentType),
       file: Value(document.file),
+      fileName: Value(document.fileName),
       expiryDate: Value(document.expiryDate),
       notes: Value(document.notes),
       created: Value(document.created),
       updated: Value(document.updated),
     );
-  }
-
-  static LinkedType _parseLinkedType(String type) {
-    switch (type) {
-      case 'unit':
-        return LinkedType.unit;
-      case 'tenant':
-        return LinkedType.tenant;
-      case 'property':
-      default:
-        return LinkedType.property;
-    }
-  }
-
-  static String _linkedTypeToString(LinkedType type) {
-    switch (type) {
-      case LinkedType.unit:
-        return 'unit';
-      case LinkedType.tenant:
-        return 'tenant';
-      case LinkedType.property:
-        return 'property';
-    }
   }
 }

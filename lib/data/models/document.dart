@@ -1,11 +1,8 @@
-enum LinkedType { property, unit, tenant }
-
 class Document {
   final String id;
-  final LinkedType linkedType;
-  final String linkedId;
   final String documentType;
   final String file;
+  final String fileName;
   final DateTime? expiryDate;
   final String? notes;
   final DateTime created;
@@ -13,10 +10,9 @@ class Document {
 
   Document({
     required this.id,
-    required this.linkedType,
-    required this.linkedId,
     required this.documentType,
     required this.file,
+    required this.fileName,
     this.expiryDate,
     this.notes,
     required this.created,
@@ -26,10 +22,9 @@ class Document {
   factory Document.fromJson(Map<String, dynamic> json) {
     return Document(
       id: json['id'] as String,
-      linkedType: _parseLinkedType(json['linked_type'] as String),
-      linkedId: json['linked_id'] as String,
       documentType: json['document_type'] as String,
       file: json['file'] as String,
+      fileName: json['file_name'] as String,
       expiryDate: json['expiry_date'] != null
           ? DateTime.parse(json['expiry_date'] as String)
           : null,
@@ -42,38 +37,14 @@ class Document {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'linked_type': _linkedTypeToString(linkedType),
-      'linked_id': linkedId,
       'document_type': documentType,
       'file': file,
+      'file_name': fileName,
       'expiry_date': expiryDate?.toIso8601String(),
       'notes': notes,
       'created': created.toIso8601String(),
       'updated': updated.toIso8601String(),
     };
-  }
-
-  static LinkedType _parseLinkedType(String type) {
-    switch (type) {
-      case 'unit':
-        return LinkedType.unit;
-      case 'tenant':
-        return LinkedType.tenant;
-      case 'property':
-      default:
-        return LinkedType.property;
-    }
-  }
-
-  static String _linkedTypeToString(LinkedType type) {
-    switch (type) {
-      case LinkedType.unit:
-        return 'unit';
-      case LinkedType.tenant:
-        return 'tenant';
-      case LinkedType.property:
-        return 'property';
-    }
   }
 
   bool get isExpiring {
@@ -89,10 +60,9 @@ class Document {
 
   Document copyWith({
     String? id,
-    LinkedType? linkedType,
-    String? linkedId,
     String? documentType,
     String? file,
+    String? fileName,
     DateTime? expiryDate,
     String? notes,
     DateTime? created,
@@ -100,10 +70,9 @@ class Document {
   }) {
     return Document(
       id: id ?? this.id,
-      linkedType: linkedType ?? this.linkedType,
-      linkedId: linkedId ?? this.linkedId,
       documentType: documentType ?? this.documentType,
       file: file ?? this.file,
+      fileName: fileName ?? this.fileName,
       expiryDate: expiryDate ?? this.expiryDate,
       notes: notes ?? this.notes,
       created: created ?? this.created,

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../../../data/models/document.dart';
+import '../../../data/models/document_link.dart';
 import '../../../data/models/property.dart';
 import '../../../data/models/tenant.dart';
 import '../logic/documents_notifier.dart';
@@ -19,26 +22,122 @@ class AddDocumentScreen extends ConsumerStatefulWidget {
 class _AddDocumentScreenState extends ConsumerState<AddDocumentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _documentTypeController = TextEditingController();
-  final _filePathController = TextEditingController();
   final _notesController = TextEditingController();
 
-  LinkedType _linkedType = LinkedType.property;
-  String? _selectedLinkedId;
+  File? _selectedFile;
+  String? _fileName;
   DateTime? _expiryDate;
+  final List<DocumentLink> _selectedLinks = [];
 
   @override
   void dispose() {
     _documentTypeController.dispose();
-    _filePathController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+  
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+    );
+    
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _selectedFile = File(result.files.single.path!);
+        _fileName = result.files.single.name;
+      });
+    }
+  }
+  
+  void _addPropertyLink() async {
+    final propertiesAsync = ref.read(propertiesNotifierProvider);
+    final properties = propertiesAsync.maybeWhen(
+      data: (props) => props,
+      orElse: () => <Property>[],
+    );
+    
+    if (properties.isEmpty) return;
+    
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Property'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: properties.length,
+            itemBuilder: (context, index) {
+              final property = properties[index];
+              return ListTile(
+                title: Text(property.name),
+                onTap: () => Navigator.pop(context, property.id),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    
+    if (selected != null) {
+      setState(() {
+        _selectedLinks.add(DocumentLink(
+          id: const Uuid().v4(),
+          documentId: '', // Will be set when document is created
+          linkedType: LinkedType.property,
+          linkedId: selected,
+          created: DateTime.now(),
+        ));
+      });
+    }
+  }
+  
+  void _addTenantLink() async {
+    final tenantsAsync = ref.read(tenantsNotifierProvider(null));
+    final tenants = tenantsAsync.maybeWhen(
+      data: (tens) => tens,
+      orElse: () => [],
+    );
+    
+    if (tenants.isEmpty) return;
+    
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Tenant'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: tenants.length,
+            itemBuilder: (context, index) {
+              final tenant = tenants[index];
+              return ListTile(
+                title: Text(tenant.name),
+                onTap: () => Navigator.pop(context, tenant.id),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    
+    if (selected != null) {
+      setState(() {
+        _selectedLinks.add(DocumentLink(
+          id: const Uuid().v4(),
+          documentId: '',
+          linkedType: LinkedType.tenant,
+          linkedId: selected,
+          created: DateTime.now(),
+        ));
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final propertiesAsync = ref.watch(propertiesNotifierProvider);
-    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Document'),
@@ -63,119 +162,59 @@ class _AddDocumentScreenState extends ConsumerState<AddDocumentScreen> {
               },
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<LinkedType>(
-              value: _linkedType,
-              decoration: const InputDecoration(
-                labelText: 'Link To *',
-                border: OutlineInputBorder(),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.attach_file),
+                title: Text(_fileName ?? 'No file selected'),
+                subtitle: _selectedFile != null
+                    ? Text(_selectedFile!.path)
+                    : const Text('Tap to select a file'),
+                trailing: const Icon(Icons.upload_file),
+                onTap: _pickFile,
               ),
-              items: const [
-                DropdownMenuItem(
-                  value: LinkedType.property,
-                  child: Text('Property'),
-                ),
-                DropdownMenuItem(
-                  value: LinkedType.tenant,
-                  child: Text('Tenant'),
-                ),
-                DropdownMenuItem(
-                  value: LinkedType.unit,
-                  child: Text('Unit'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _linkedType = value;
-                    _selectedLinkedId = null;
-                  });
-                }
-              },
             ),
             const SizedBox(height: 16),
-            if (_linkedType == LinkedType.property)
-              propertiesAsync.when(
-                data: (properties) => DropdownButtonFormField<String>(
-                  value: _selectedLinkedId,
-                  decoration: const InputDecoration(
-                    labelText: 'Select Property *',
-                    border: OutlineInputBorder(),
+            const Text('Linked Entities:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ..._selectedLinks.map((link) => Card(
+              child: ListTile(
+                leading: Icon(
+                  link.linkedType == LinkedType.property
+                      ? Icons.home
+                      : link.linkedType == LinkedType.tenant
+                          ? Icons.person
+                          : Icons.apartment,
+                ),
+                title: Text('${link.linkedType.toString().split('.').last}: ${link.linkedId}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.remove_circle, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      _selectedLinks.remove(link);
+                    });
+                  },
+                ),
+              ),
+            )),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _addPropertyLink,
+                    icon: const Icon(Icons.home),
+                    label: const Text('Add Property'),
                   ),
-                  items: properties.map((property) {
-                    return DropdownMenuItem(
-                      value: property.id,
-                      child: Text(property.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedLinkedId = value);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select a property';
-                    }
-                    return null;
-                  },
                 ),
-                loading: () => const CircularProgressIndicator(),
-                error: (error, _) => Text('Error: $error'),
-              ),
-            if (_linkedType == LinkedType.tenant)
-              tenantsAsync.when(
-                data: (tenants) => DropdownButtonFormField<String>(
-                  value: _selectedLinkedId,
-                  decoration: const InputDecoration(
-                    labelText: 'Select Tenant *',
-                    border: OutlineInputBorder(),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _addTenantLink,
+                    icon: const Icon(Icons.person),
+                    label: const Text('Add Tenant'),
                   ),
-                  items: tenants.map((tenant) {
-                    return DropdownMenuItem(
-                      value: tenant.id,
-                      child: Text(tenant.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedLinkedId = value);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select a tenant';
-                    }
-                    return null;
-                  },
                 ),
-                loading: () => const CircularProgressIndicator(),
-                error: (error, _) => Text('Error: $error'),
-              ),
-            if (_linkedType == LinkedType.unit)
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Unit ID *',
-                  border: OutlineInputBorder(),
-                  helperText: 'Enter the unit identifier',
-                ),
-                onChanged: (value) => _selectedLinkedId = value,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter unit ID';
-                  }
-                  return null;
-                },
-              ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _filePathController,
-              decoration: const InputDecoration(
-                labelText: 'File Path / Reference *',
-                border: OutlineInputBorder(),
-                helperText: 'File location or reference identifier',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter file path';
-                }
-                return null;
-              },
+              ],
             ),
             const SizedBox(height: 16),
             ListTile(
@@ -255,21 +294,37 @@ class _AddDocumentScreenState extends ConsumerState<AddDocumentScreen> {
 
   void _saveDocument() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedFile == null || _fileName == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a file')),
+        );
+        return;
+      }
+      
+      if (_selectedLinks.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please link to at least one property or tenant')),
+        );
+        return;
+      }
+
       final notifier = ref.read(documentsNotifierProvider.notifier);
+      final documentId = const Uuid().v4();
 
       final document = Document(
-        id: const Uuid().v4(),
-        linkedType: _linkedType,
-        linkedId: _selectedLinkedId!,
+        id: documentId,
         documentType: _documentTypeController.text,
-        file: _filePathController.text,
+        file: _selectedFile!.path,
+        fileName: _fileName!,
         expiryDate: _expiryDate,
         notes: _notesController.text.isEmpty ? null : _notesController.text,
         created: DateTime.now(),
         updated: DateTime.now(),
       );
+      
+      final links = _selectedLinks.map((link) => link.copyWith(documentId: documentId)).toList();
 
-      await notifier.createDocument(document);
+      await notifier.createDocument(document, links);
 
       if (mounted) {
         Navigator.pop(context);
