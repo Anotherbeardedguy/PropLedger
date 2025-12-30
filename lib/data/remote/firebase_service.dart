@@ -3,6 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../../core/errors/exceptions.dart';
 
+/// Exception for Firebase Storage operations
+class StorageException extends AppException {
+  StorageException(String message, {String? code})
+      : super(message, code: code ?? 'STORAGE_ERROR');
+}
+
 /// Firebase service for Firestore, Auth, and Storage operations
 class FirebaseService {
   final FirebaseAuth _auth;

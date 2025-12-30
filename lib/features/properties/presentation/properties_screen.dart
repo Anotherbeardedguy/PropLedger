@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/models/property.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_display.dart';
+import '../logic/properties_notifier.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
-import '../logic/properties_notifier.dart';
 import 'property_detail_screen.dart';
 import 'property_form_screen.dart';
 

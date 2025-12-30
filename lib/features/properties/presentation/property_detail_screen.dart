@@ -4,7 +4,6 @@ import '../logic/properties_notifier.dart';
 import 'property_form_screen.dart';
 import 'widgets/units_tab.dart';
 import 'widgets/tenants_tab.dart';
-import '../../../data/models/property.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 
@@ -136,7 +135,7 @@ class PropertyDetailScreen extends ConsumerWidget {
                 if (property.purchaseDate != null)
                   _buildInfoRow(
                     'Purchase Date',
-                    DateFormatter.format(property.purchaseDate!),
+                    DateFormatter.format(property.purchaseDate!, settings.dateFormat),
                   ),
                 if (property.purchasePrice != null)
                   _buildInfoRow(

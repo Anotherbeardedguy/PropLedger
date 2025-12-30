@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../data/models/loan.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
@@ -20,7 +19,7 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
   String? _selectedPropertyId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final loansAsync = ref.watch(loansNotifierProvider);
     final settings = ref.watch(settingsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
@@ -166,9 +165,9 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
     );
   }
 
-  Widget _buildLoanCard(BuildContext context, Loan loan, AsyncValue<List<Property>> propertiesAsync, Settings settings) {
+  Widget _buildLoanCard(BuildContext context, Loan loan, AsyncValue propertiesAsync, settings) {
     final property = propertiesAsync.maybeWhen(
-      data: (properties) => properties.cast<Property?>().firstWhere(
+      data: (properties) => properties.cast<dynamic>().firstWhere(
             (p) => p?.id == loan.propertyId,
             orElse: () => null,
           ),

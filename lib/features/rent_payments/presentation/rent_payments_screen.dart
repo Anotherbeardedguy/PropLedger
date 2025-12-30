@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../data/models/rent_payment.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
@@ -22,7 +21,7 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
   PaymentFilter _currentFilter = PaymentFilter.all;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
     final settings = ref.watch(settingsNotifierProvider);
     final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
@@ -233,6 +232,7 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
     List<dynamic> tenants,
     List<dynamic> units,
   ) {
+    final settings = ref.watch(settingsNotifierProvider);
     if (payments.isEmpty) {
       return Center(
         child: Text(
@@ -298,6 +298,12 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
                 Text(
                   'Due: ${DateFormatter.format(payment.dueDate, settings.dateFormat)}',
                 ),
+                if (payment.paidDate != null)
+                  Text(
+                    'Paid: ${DateFormatter.format(payment.paidDate!, settings.dateFormat)}',
+                    style: const TextStyle(color: Colors.green),
+                  ),
+                const SizedBox(height: 4),
                 Text(
                   CurrencyFormatter.format(payment.amount, settings.currency),
                   style: const TextStyle(
@@ -305,12 +311,6 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Text('Due: ${DateFormat('MMM dd, yyyy').format(payment.dueDate)}'),
-                if (payment.paidDate != null)
-                  Text(
-                    'Paid: ${DateFormat('MMM dd, yyyy').format(payment.paidDate!)}',
-                    style: const TextStyle(color: Colors.green),
-                  ),
                 if (isLate && payment.daysOverdue > 0)
                   Text(
                     '${payment.daysOverdue} days overdue',

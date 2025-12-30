@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../data/models/lease.dart';
-import '../../../core/utils/formatters.dart';
-import '../../../features/settings/logic/settings_notifier.dart';
 import '../../tenants/logic/tenants_notifier.dart';
 import '../../tenants/presentation/tenants_screen.dart';
 
@@ -13,7 +10,6 @@ class ExpiringLeasesCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
-    final settings = ref.watch(settingsNotifierProvider);
 
     return tenantsAsync.when(
       data: (tenants) {

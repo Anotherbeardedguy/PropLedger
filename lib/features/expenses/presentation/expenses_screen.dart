@@ -5,9 +5,6 @@ import '../../../data/models/expense.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/expenses_notifier.dart';
-import 'expense_form_screen.dart';
-import '../../../data/models/property.dart';
-import '../logic/expenses_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import 'add_edit_expense_screen.dart';
 
@@ -25,7 +22,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
   DateTime? _endDate;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final expensesAsync = ref.watch(expensesNotifierProvider);
     final settings = ref.watch(settingsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
@@ -183,9 +180,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     });
   }
 
-  Widget _buildExpenseCard(BuildContext context, Expense expense, AsyncValue<List<Property>> propertiesAsync) {
+  Widget _buildExpenseCard(BuildContext context, Expense expense, AsyncValue propertiesAsync) {
     final property = propertiesAsync.maybeWhen(
-      data: (properties) => properties.cast<Property?>().firstWhere(
+      data: (properties) => properties.cast<dynamic>().firstWhere(
             (p) => p?.id == expense.propertyId,
             orElse: () => null,
           ),

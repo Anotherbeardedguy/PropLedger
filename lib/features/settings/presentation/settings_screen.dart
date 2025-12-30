@@ -42,6 +42,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsNotifierProvider);
+    final settingsNotifier = ref.read(settingsNotifierProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),

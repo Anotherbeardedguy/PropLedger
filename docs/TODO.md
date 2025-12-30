@@ -350,24 +350,30 @@
 
 ## Phase 11: Dashboard & Reports COMPLETED
 
-### Dashboard UI
-- [x] Dashboard screen with KPI cards
-- [x] Outstanding rent summary (card with real-time updates)
-- [x] Upcoming payments card (next 30 days)
-- [x] Quick actions grid (2-column layout)
-- [x] Upcoming lease expiries widget (60-day window, color-coded urgency)
-- [x] Open maintenance tasks count (with overdue highlighting)
-- [ ] Monthly cash flow chart
-- [ ] Recent activity feed
+### Dashboard Widgets
+- [x] Summary cards (properties, income, expenses)
+- [x] Upcoming maintenance tasks
+- [x] Lease expiration alerts
+- [x] Portfolio analytics card with key metrics
+- [x] Quick action buttons
+- [x] Settings integration (currency, date format, theme)
 
-### Analytics & Reports
-- [x] Calculate total portfolio value
-- [x] Calculate total equity
-- [x] Calculate occupancy rate
-- [x] Monthly cash flow calculation
-- [x] YTD income and expenses
-- [x] Property financial snapshot
-- [x] Portfolio overview report
+### Analytics
+- [x] Total portfolio value calculation
+- [x] Total equity (value - debt)
+- [x] Occupancy rate calculation
+- [x] Property count
+- [x] Currency formatting throughout app
+- [x] Date formatting throughout app
+- [ ] Portfolio value over time (future: requires historical data)
+- [ ] Income vs Expense trends (future: time-series charts)
+- [ ] Property performance comparison (future)
+
+### Reports
+- [ ] Monthly income statement (future)
+- [ ] Expense breakdown by category (future)
+- [ ] Rent collection report (future)
+- [ ] Tax summary report (future)
 
 ### Testing
 - [ ] Verify all dashboard metrics

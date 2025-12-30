@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/maintenance_task.dart';
-import '../../../core/utils/formatters.dart';
-import '../../../features/settings/logic/settings_notifier.dart';
 import '../logic/maintenance_notifier.dart';
-import 'maintenance_form_screen.dart';
 import '../../properties/logic/properties_notifier.dart';
 import 'add_edit_maintenance_screen.dart';
 
@@ -22,9 +19,8 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
   TaskPriority? _selectedPriority;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final tasksAsync = ref.watch(maintenanceNotifierProvider);
-    final settings = ref.watch(settingsNotifierProvider);
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
 
     return Scaffold(
@@ -176,9 +172,9 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
     });
   }
 
-  Widget _buildTaskCard(BuildContext context, MaintenanceTask task, AsyncValue<List<Property>> propertiesAsync) {
+  Widget _buildTaskCard(BuildContext context, MaintenanceTask task, AsyncValue propertiesAsync) {
     final property = propertiesAsync.maybeWhen(
-      data: (properties) => properties.cast<Property?>().firstWhere(
+      data: (properties) => properties.cast<dynamic>().firstWhere(
             (p) => p?.id == task.propertyId,
             orElse: () => null,
           ),
