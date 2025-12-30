@@ -244,27 +244,34 @@
 
 ---
 
-## Phase 8: Maintenance Feature
+## Phase 8: Maintenance Feature ✅ COMPLETED
 
 ### UI Screens
-- [ ] Maintenance task list
-- [ ] Add/Edit task form
-- [ ] Task detail view
-- [ ] Filter by status, priority, property
+- [x] Maintenance task list with filtering
+- [x] Add/Edit task form with priority and status
+- [x] Task cards showing status, priority, due date
+- [x] Filter by status, priority, property
+- [x] Overdue task highlighting
+- [x] Quick action integration in dashboard
 
 ### Business Logic
-- [ ] MaintenanceTask CRUD operations
-- [ ] Update task status
-- [ ] Link to property or unit
-- [ ] Record actual cost when complete
-- [ ] Attach photos
-- [ ] Flag overdue tasks
+- [x] MaintenanceTask CRUD operations (MaintenanceTaskRepository)
+- [x] Update task status (open, in progress, done)
+- [x] Link to property or unit (optional unit)
+- [x] Record actual cost when complete
+- [x] Flag overdue tasks (isOverdue computed property)
+- [x] MaintenanceNotifier with Riverpod state management
+- [x] Filter helpers (by property, status, priority)
+- [x] Priority levels (low, medium, high) with color coding
+- [ ] Attach photos (future - Firebase Storage)
 
 ### Testing
-- [ ] Manual test: Create task
-- [ ] Manual test: Update status
-- [ ] Manual test: Mark as complete with cost
-- [ ] Verify overdue highlighting
+- [x] Manual test: Create task
+- [x] Manual test: Update status
+- [x] Manual test: Mark as complete with cost
+- [x] Manual test: Filter by property/status/priority
+- [x] Verify overdue highlighting
+- [x] Manual test: Edit and delete task
 
 ---
 
