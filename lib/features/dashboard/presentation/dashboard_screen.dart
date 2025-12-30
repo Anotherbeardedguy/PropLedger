@@ -97,45 +97,41 @@ class DashboardScreen extends ConsumerWidget {
     required VoidCallback onTap,
     bool enabled = true,
   }) {
-    return SizedBox(
-      width: 140,
-      height: 120,
-      child: Card(
-        elevation: enabled ? 2 : 0,
-        color: enabled ? null : Colors.grey[200],
-        child: InkWell(
-          onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 48,
-                  color: enabled
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey[400],
+    return Card(
+      elevation: enabled ? 2 : 0,
+      color: enabled ? null : Colors.grey[200],
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 48,
+                color: enabled
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[400],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: enabled ? null : Colors.grey[600],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
+              ),
+              if (!enabled)
+                const Text(
+                  '(Soon)',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: enabled ? null : Colors.grey[600],
+                    fontSize: 10,
+                    color: Colors.grey,
                   ),
                 ),
-                if (!enabled)
-                  const Text(
-                    '(Soon)',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey,
-                    ),
-                  ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
