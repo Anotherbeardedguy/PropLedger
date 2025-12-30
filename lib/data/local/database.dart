@@ -221,40 +221,55 @@ class AppDatabase extends _$AppDatabase {
           // Add upkeepAmount column to units table
         }
         if (from < 3) {
-          // Migrate to v3: Create DocumentLinks table and update Documents
+          // Migrate to v3: Recreate Documents table without linked_type and linked_id
+          // and create DocumentLinks junction table
+          
+          // 1. Create DocumentLinks table
           await m.createTable(documentLinks);
           
-          // Add fileName column to Documents (nullable, so no default needed)
-          // Wrapped in try-catch to handle partial migrations
-          try {
-            await m.addColumn(documents, documents.fileName);
-          } catch (e) {
-            // Column may already exist from partial migration
-            print('fileName column may already exist: $e');
-          }
+          // 2. Recreate Documents table by copying data to temp, drop, recreate
+          await customStatement('''
+            CREATE TABLE documents_new (
+              id TEXT PRIMARY KEY NOT NULL,
+              document_type TEXT NOT NULL,
+              file TEXT NOT NULL,
+              file_name TEXT,
+              expiry_date INTEGER,
+              notes TEXT,
+              created INTEGER NOT NULL,
+              updated INTEGER NOT NULL
+            )
+          ''');
           
+          // Copy existing documents (ignore linked_type and linked_id)
+          await customStatement('''
+            INSERT INTO documents_new (id, document_type, file, file_name, expiry_date, notes, created, updated)
+            SELECT id, document_type, file, NULL, expiry_date, notes, created, updated
+            FROM documents
+          ''');
+          
+          // Drop old table and rename new one
+          await customStatement('DROP TABLE documents');
+          await customStatement('ALTER TABLE documents_new RENAME TO documents');
+          
+          // 3. Add other columns to existing tables
           try {
             await m.addColumn(units, units.upkeepAmount);
           } catch (e) {
             print('upkeepAmount column may already exist: $e');
           }
           
-          // Add leaseTerm column to tenants table with default value
           try {
             await m.addColumn(tenants, tenants.leaseTerm);
           } catch (e) {
             print('leaseTerm column may already exist: $e');
           }
           
-          // Add unitId column to loans table
           try {
             await m.addColumn(loans, loans.unitId);
           } catch (e) {
             print('unitId column may already exist: $e');
           }
-          
-          // Note: Making columns nullable (propertyId) is handled automatically by Drift
-          // as it doesn't require data migration, just schema changes
         }
       },
     );
