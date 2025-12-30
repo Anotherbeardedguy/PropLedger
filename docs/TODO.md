@@ -49,11 +49,11 @@
 - [x] Define Unit model (with nullable propertyId, upkeepAmount)
 - [x] Define Tenant model (with LeaseTerm enum)
 - [x] Define RentPayment model (with PaymentStatus enum)
-- [ ] Define Expense model
-- [ ] Define MaintenanceTask model
+- [x] Define Expense model
+- [x] Define MaintenanceTask model (with TaskPriority, TaskStatus enums)
 - [x] Define Loan model (with nullable propertyId, unitId)
-- [ ] Define LoanPayment model
-- [ ] Define Document model
+- [x] Define LoanPayment model
+- [x] Define Document model (with LinkedType enum)
 - [x] Add JSON serialization for all models
 - [x] Add validation logic to models
 
@@ -63,13 +63,13 @@
 - [x] Create Unit table (with upkeepAmount, nullable propertyId)
 - [x] Create Tenant table (with leaseTerm)
 - [x] Create RentPayment table
-- [ ] Create Expense table
-- [ ] Create MaintenanceTask table
+- [x] Create Expense table
+- [x] Create MaintenanceTask table
 - [x] Create Loan table (with nullable propertyId, unitId)
-- [ ] Create LoanPayment table
-- [ ] Create Document table
-- [ ] Create SyncQueue table (for offline changes)
-- [x] Implement DAOs for all entities (Property, Unit, Tenant, RentPayment, Loan)
+- [x] Create LoanPayment table
+- [x] Create Document table
+- [x] Create SyncQueue table (for offline changes)
+- [x] Implement DAOs for all entities (all tables created)
 - [x] Add database migrations strategy (v1 → v2)
 
 ### Firestore Collections
@@ -94,18 +94,18 @@
 - [x] Create base repository interface
 - [x] Implement PropertyRepository
   - [x] CRUD operations (local)
-  - [ ] Sync logic (PocketBase - future)
+  - [ ] Sync logic (Firebase - future)
 - [x] Implement UnitRepository
 - [x] Implement TenantRepository (with unit status updates)
 - [x] Implement RentPaymentRepository
-- [ ] Implement ExpenseRepository
-- [ ] Implement MaintenanceTaskRepository
+- [x] Implement ExpenseRepository (with property filtering, total expenses)
+- [x] Implement MaintenanceTaskRepository (with status filtering, overdue tasks)
 - [x] Implement LoanRepository
-- [ ] Implement LoanPaymentRepository
-- [ ] Implement DocumentRepository
-- [ ] Create SyncService for background sync
-- [ ] Implement conflict resolution strategy
-- [ ] Add retry logic with exponential backoff
+- [x] Implement LoanPaymentRepository (with loan totals, payment history)
+- [x] Implement DocumentRepository (with expiry tracking, linked entity filtering)
+- [ ] Create SyncService for background sync (Firebase - future)
+- [ ] Implement conflict resolution strategy (future)
+- [ ] Add retry logic with exponential backoff (future)
 
 **Note**: Local-only repositories completed. Firebase sync implementation deferred.
 
