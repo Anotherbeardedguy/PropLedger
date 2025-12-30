@@ -1,7 +1,8 @@
 # PropLedger - Development TODO List
 
 > **Current Stage**: MVP  
-> **Last Updated**: 2024-12-29
+> **Version**: 1.1.0  
+> **Last Updated**: 2024-12-30
 
 ---
 
@@ -284,8 +285,10 @@
 ## Phase 11: Dashboard & Reports
 
 ### Dashboard UI
-- [ ] Dashboard screen with KPI cards
-- [ ] Outstanding rent summary
+- [x] Dashboard screen with KPI cards
+- [x] Outstanding rent summary (card with real-time updates)
+- [x] Upcoming payments card (next 30 days)
+- [x] Quick actions grid (2-column layout)
 - [ ] Upcoming lease expiries widget
 - [ ] Monthly cash flow chart
 - [ ] Open maintenance tasks count

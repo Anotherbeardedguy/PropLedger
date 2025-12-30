@@ -9,6 +9,12 @@ PropLedger is a Flutter-based Android application designed for single owner/oper
 ## Key Features
 
 - **Portfolio Management**: Properties, units, tenants
+- **Automated Rent Payments**: One-time setup rent collection system
+  - Auto-generates recurring payments based on lease terms (monthly/annually)
+  - Real-time payment tracking and status updates
+  - Late payment detection with automatic interest calculation
+  - Outstanding and upcoming payment dashboard cards
+  - Payment filtering (All, Outstanding, Late, Paid)
 - **Financial Tracking**: Rent payments, expenses, loans
 - **Operations**: Maintenance tasks, document storage
 - **Analytics**: Dashboard KPIs, cash flow analysis
@@ -65,14 +71,26 @@ PropLedger/
 
 ## Design Philosophy
 
-- **Manual-first**: Low automation, user control
+- **One-time setup automation**: Configure once, runs automatically
+- **Manual-first control**: Low automation for complex workflows, user control
 - **Fast data entry**: Optimized for quick updates
 - **Financial clarity**: Clear view of cash flow and debt
+- **Real-time updates**: Instant UI refresh across all screens
 - **Offline-tolerant**: Works without internet connection
 
 ## Development Status
 
-**Current Stage**: MVP (Minimum Viable Product)
+**Current Stage**: MVP (Minimum Viable Product)  
+**Version**: 1.1.0
+
+### Recent Updates (v1.1.0)
+- ✅ Automated rent payment system with one-time setup
+- ✅ Recurring payment generation based on lease terms
+- ✅ Late payment detection and interest calculation
+- ✅ Real-time dashboard updates
+- ✅ Payment filtering and status tracking
+- ✅ Unit-level standalone properties and loans
+- ✅ Lease term support (monthly/annually)
 
 See `docs/TODO.md` for detailed development roadmap.
 
