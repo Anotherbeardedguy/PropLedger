@@ -275,53 +275,76 @@
 
 ---
 
-## Phase 9: Loans Feature
+## Phase 9: Loans Feature ✅ COMPLETED
 
 ### UI Screens
-- [ ] Loan list per property
-- [ ] Add/Edit loan form
-- [ ] Loan detail view
-- [ ] Loan payment history
-- [ ] Record loan payment form
+- [x] Loan list with property filtering
+- [x] Add/Edit loan form
+- [x] Loan detail view with payment history
+- [x] Record loan payment form with auto-calculation
+- [x] Progress indicators showing payoff percentage
+- [x] Quick action integration in dashboard
+- [x] Total loan summary card (borrowed, balance, paid)
 
 ### Business Logic
-- [ ] Loan CRUD operations
-- [ ] Link loan to property
-- [ ] Record loan payment
-- [ ] Calculate principal vs interest
-- [ ] Update remaining balance
-- [ ] Calculate total interest paid
-- [ ] Estimate payoff date
+- [x] Loan CRUD operations (LoanRepository)
+- [x] Link loan to property
+- [x] Record loan payment (LoanPaymentRepository)
+- [x] Calculate principal vs interest split
+- [x] Update remaining balance automatically
+- [x] Calculate total paid (computed property)
+- [x] LoansNotifier with Riverpod state management
+- [x] LoanPaymentsNotifier for payment history
+- [x] Filter by property
+- [x] Interest type support (fixed/variable)
+- [x] Payment frequency options (monthly/quarterly/annually)
+- [ ] Estimate payoff date (future calculation)
 
 ### Testing
-- [ ] Manual test: Add loan
-- [ ] Manual test: Record payment
-- [ ] Verify balance calculations
-- [ ] Test payment history
+- [x] Manual test: Add loan
+- [x] Manual test: Record payment
+- [x] Verify balance calculations
+- [x] Test payment history
+- [x] Test principal/interest split calculation
+- [x] Manual test: Edit and delete loan
+- [x] Manual test: Delete payment record
 
 ---
 
-## Phase 10: Documents Feature
+## Phase 10: Documents Feature ✅ COMPLETED
 
 ### UI Screens
-- [ ] Document list (grouped by type)
-- [ ] Upload document form
-- [ ] Document viewer (PDF/image)
-- [ ] Expiring documents view
+- [x] Document list with filtering
+- [x] Add document form with property/tenant/unit linking
+- [x] Document detail dialog
+- [x] Expiring/expired document warnings
+- [x] Quick action integration in dashboard
+- [x] Document type icons
+- [ ] Document viewer (PDF/image) - requires file picker package
+- [ ] File upload - deferred to Firebase Storage integration
 
 ### Business Logic
-- [ ] Upload document to PocketBase
-- [ ] Link to property, unit, or tenant
-- [ ] Set document type and expiry
-- [ ] Flag expiring documents (< 30 days)
-- [ ] Download and view documents
-- [ ] Delete documents
+- [x] Document CRUD operations (DocumentRepository)
+- [x] Link to property, unit, or tenant (LinkedType enum)
+- [x] Set document type and expiry date
+- [x] Flag expiring documents (< 30 days)
+- [x] Flag expired documents (past expiry)
+- [x] Delete documents
+- [x] DocumentsNotifier with Riverpod state management
+- [x] Filter helpers (by linked entity, expiring, expired)
+- [x] Expiring count calculation
+- [x] isExpired and isExpiringSoon computed properties
+- [ ] File storage - currently uses file path reference (local)
+- [ ] Firebase Storage integration - future phase
 
 ### Testing
-- [ ] Manual test: Upload PDF
-- [ ] Manual test: Upload image
-- [ ] Manual test: View document
-- [ ] Test expiry alerts
+- [x] Manual test: Add document
+- [x] Manual test: Link to property
+- [x] Manual test: Link to tenant
+- [x] Manual test: Set expiry date
+- [x] Manual test: View expiry warnings
+- [x] Manual test: Delete document
+- [ ] Test file upload (requires Firebase Storage)
 
 ---
 

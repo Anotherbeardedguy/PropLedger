@@ -8,6 +8,7 @@ import '../../rent_payments/presentation/rent_payments_screen.dart';
 import '../../expenses/presentation/expenses_screen.dart';
 import '../../maintenance/presentation/maintenance_screen.dart';
 import '../../loans/presentation/loans_screen.dart';
+import '../../documents/presentation/documents_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -112,6 +113,18 @@ class DashboardScreen extends ConsumerWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const LoansScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildQuickActionCard(
+                    context,
+                    icon: Icons.folder,
+                    label: 'Documents',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const DocumentsScreen(),
                         ),
                       );
                     },
