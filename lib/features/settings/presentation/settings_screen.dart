@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../logic/settings_notifier.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -101,23 +101,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.money),
             title: const Text('Currency'),
-            subtitle: Text(_currency),
+            subtitle: Text(settings.currency),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showCurrencyDialog(),
+            onTap: () => _showCurrencyDialog(settings.currency, settingsNotifier),
           ),
           ListTile(
             leading: const Icon(Icons.calendar_today),
             title: const Text('Date Format'),
-            subtitle: Text(_dateFormat),
+            subtitle: Text(settings.dateFormat),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showDateFormatDialog(),
+            onTap: () => _showDateFormatDialog(settings.dateFormat, settingsNotifier),
           ),
           ListTile(
             leading: const Icon(Icons.brightness_6),
             title: const Text('Theme'),
-            subtitle: Text(_themeMode.name.toUpperCase()),
+            subtitle: Text(settings.themeMode.name.toUpperCase()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showThemeDialog(),
+            onTap: () => _showThemeDialog(settings.themeMode, settingsNotifier),
           ),
           const Divider(),
           const Padding(

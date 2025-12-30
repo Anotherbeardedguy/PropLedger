@@ -170,42 +170,45 @@ class DashboardScreen extends ConsumerWidget {
       child: InkWell(
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(12),
-        child: SizedBox.expand(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 48,
-                  color: enabled
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey[400],
-                ),
-                const SizedBox(height: 8),
-                Text(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 36,
+                color: enabled
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey[400],
+              ),
+              const SizedBox(height: 6),
+              Flexible(
+                child: Text(
                   label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     color: enabled ? null : Colors.grey[600],
                   ),
                 ),
-                SizedBox(
-                  height: 18,
-                  child: !enabled
-                      ? const Text(
-                          '(Soon)',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                          ),
-                        )
-                      : null,
+              ),
+              if (!enabled)
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Text(
+                    '(Soon)',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'app/app.dart';
 import 'app/env.dart';
+import 'features/settings/logic/settings_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
