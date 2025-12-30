@@ -214,27 +214,33 @@
 
 ---
 
-## Phase 7: Expenses Feature
+## Phase 7: Expenses Feature ✅ COMPLETED
 
 ### UI Screens
-- [ ] Expense list screen
-- [ ] Add/Edit expense form
-- [ ] Expense detail view with receipt
-- [ ] Filter by category, property, date
+- [x] Expense list screen with filtering
+- [x] Add/Edit expense form with autocomplete categories
+- [x] Expense cards showing property, amount, category
+- [x] Filter by category, property, date range
+- [x] Total expenses summary card
+- [x] Quick action integration in dashboard
 
 ### Business Logic
-- [ ] Expense CRUD operations
-- [ ] Link expense to property or unit
-- [ ] Handle recurring expenses
-- [ ] Upload receipt to PocketBase file storage
-- [ ] Calculate total expenses
-- [ ] Category management
+- [x] Expense CRUD operations (ExpenseRepository)
+- [x] Link expense to property or unit (optional unit)
+- [x] Handle recurring expenses (toggle flag)
+- [x] Calculate total expenses
+- [x] Category management (common categories + custom)
+- [x] ExpensesNotifier with Riverpod state management
+- [x] Filter helpers (by property, category, date range)
+- [ ] Upload receipt to Firebase Storage (future)
 
 ### Testing
-- [ ] Manual test: Log expense
-- [ ] Manual test: Attach receipt photo
-- [ ] Manual test: View expense history
-- [ ] Test file upload/download
+- [x] Manual test: Log expense
+- [x] Manual test: View expense history
+- [x] Manual test: Filter by property/category/date
+- [x] Manual test: Edit and delete expense
+- [x] Manual test: Recurring expense flag
+- [ ] Test file upload/download (future - Firebase Storage)
 
 ---
 
