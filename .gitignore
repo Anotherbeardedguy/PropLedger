@@ -111,9 +111,14 @@ test_driver/
 *.sqlite
 *.sqlite3
 
-# PocketBase files (if running locally)
-pb_data/
-pb_migrations/
+# Firebase files
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+firebase.json
+.firebaserc
 
 # Secrets and credentials
 secrets/

@@ -6,9 +6,9 @@
 2. **Android Studio installed** ✓
 3. **Android emulator or physical device**
 
-## Quick Start Testing (Without PocketBase)
+## Quick Start Testing (Without Firebase)
 
-The app will work in **offline mode** without PocketBase backend. You can test all CRUD operations locally.
+The app currently works in **offline mode** without Firebase backend. You can test all CRUD operations locally using the Drift SQLite database.
 
 ### Step 1: Start Android Emulator
 
@@ -46,49 +46,34 @@ The app will:
 
 ### Step 3: Test Without Backend (Offline Mode)
 
-Since PocketBase is not configured, the login will fail. To test the app features without authentication:
+Since Firebase is not configured yet, the login will fail. To test the app features without authentication:
 
 **Temporary Testing Workaround:**
 1. The app will show login screen
 2. Login will fail (expected - no backend yet)
 3. For now, you can test the UI structure
 
-## Full Testing (With PocketBase)
+## Full Testing (With Firebase)
 
 For complete testing with authentication and sync:
 
-### Step 1: Set Up PocketBase
+### Step 1: Set Up Firebase
 
-**Download PocketBase:**
-```bash
-# Download from https://github.com/pocketbase/pocketbase/releases
-# Extract pocketbase.exe to a folder
-# Or use the quick download:
-```
+Follow the comprehensive guide in `docs/FIREBASE_SETUP.md`:
 
-**Run PocketBase:**
-```bash
-# Navigate to PocketBase folder
-cd path\to\pocketbase
+1. Create Firebase project at https://console.firebase.google.com
+2. Add Android app to project
+3. Download `google-services.json` to `android/app/`
+4. Enable Firebase Authentication (Email/Password)
+5. Enable Cloud Firestore
+6. Configure Firestore security rules
 
-# Start PocketBase
-.\pocketbase.exe serve
-```
+### Step 2: Create Test User
 
-PocketBase will start on `http://127.0.0.1:8090`
-
-### Step 2: Configure PocketBase
-
-1. Open browser: `http://127.0.0.1:8090/_/`
-2. Create admin account
-3. Go to Settings → Collections
-4. Create collections as per `docs/POCKETBASE_SETUP.md`
-
-### Step 3: Create Test User
-
-1. In PocketBase admin: Collections → users
-2. Click "New record"
-3. Add:
+**Option 1: Via Firebase Console**
+1. Go to Firebase Console → Authentication → Users
+2. Click "Add user"
+3. Enter:
    - Email: `test@propledger.com`
    - Password: `test123456`
 4. Save
@@ -183,15 +168,20 @@ flutter run
 
 ## Troubleshooting
 
-### "Unable to connect to PocketBase"
-- Check PocketBase is running: `http://127.0.0.1:8090`
-- For emulator, URL should be `http://10.0.2.2:8090`
-- For physical device, use your computer's IP address
+### "No Firebase App '[DEFAULT]' has been created"
+- Ensure `google-services.json` is in `android/app/`
+- Run `flutter clean && flutter pub get`
+- Rebuild the app
+
+### "FirebaseException: PERMISSION_DENIED"
+- Check Firestore security rules in Firebase Console
+- Ensure user is authenticated
+- Verify rules allow authenticated access
 
 ### "Authentication failed"
-- Verify user exists in PocketBase admin
+- Verify user exists in Firebase Console → Authentication
 - Check email/password are correct
-- Ensure users collection exists
+- Ensure Firebase Auth is enabled
 
 ### App crashes on startup
 - Run `flutter clean`
@@ -199,9 +189,10 @@ flutter run
 - Rebuild: `flutter run`
 
 ### Changes not syncing
-- Check PocketBase is running
-- View sync queue in local database
-- Check PocketBase logs for errors
+- Check internet connection
+- View sync queue in local database (when implemented)
+- Check Firebase Console for service status
+- Verify Firestore security rules allow write access
 
 ## Build for Testing
 
@@ -267,5 +258,5 @@ Once logged in, you can quickly add test data:
 
 For issues or questions, check:
 - `README.md` - Project overview
-- `docs/POCKETBASE_SETUP.md` - Detailed backend setup
+- `docs/FIREBASE_SETUP.md` - Detailed Firebase setup guide
 - `docs/TODO.md` - Development roadmap
