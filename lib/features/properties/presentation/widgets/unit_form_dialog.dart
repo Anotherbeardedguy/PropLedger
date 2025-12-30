@@ -24,6 +24,7 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
   late final TextEditingController _sizeSqmController;
   late final TextEditingController _roomsController;
   late final TextEditingController _rentAmountController;
+  late final TextEditingController _upkeepAmountController;
   late final TextEditingController _notesController;
   late UnitStatus _status;
   bool _isLoading = false;
@@ -41,6 +42,9 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
     _rentAmountController = TextEditingController(
       text: widget.unit?.rentAmount.toString() ?? '',
     );
+    _upkeepAmountController = TextEditingController(
+      text: widget.unit?.upkeepAmount?.toString(),
+    );
     _notesController = TextEditingController(text: widget.unit?.notes);
     _status = widget.unit?.status ?? UnitStatus.vacant;
   }
@@ -51,6 +55,7 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
     _sizeSqmController.dispose();
     _roomsController.dispose();
     _rentAmountController.dispose();
+    _upkeepAmountController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -74,6 +79,9 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
             ? int.tryParse(_roomsController.text)
             : null,
         rentAmount: double.parse(_rentAmountController.text),
+        upkeepAmount: _upkeepAmountController.text.isNotEmpty
+            ? double.tryParse(_upkeepAmountController.text)
+            : null,
         status: _status,
         notes: _notesController.text.trim().isEmpty
             ? null
@@ -247,6 +255,18 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
                     keyboardType: TextInputType.number,
                     validator: (value) =>
                         Validators.positiveNumber(value, fieldName: 'Rent amount'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _upkeepAmountController,
+                    decoration: const InputDecoration(
+                      labelText: 'Upkeep Amount (Optional)',
+                      hintText: '0.00',
+                      helperText: 'Maintenance/service costs',
+                      border: OutlineInputBorder(),
+                      prefixText: '\$ ',
+                    ),
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<UnitStatus>(

@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/tenant.dart';
 import '../../../data/repositories/providers.dart';
 import '../../../data/repositories/tenant_repository.dart';
+import '../../properties/logic/units_notifier.dart';
 
 class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
   final TenantRepository _repository;
   final String? _unitId;
+  final Ref _ref;
 
-  TenantsNotifier(this._repository, this._unitId) : super(const AsyncValue.loading()) {
+  TenantsNotifier(this._repository, this._unitId, this._ref) : super(const AsyncValue.loading()) {
     loadTenants();
   }
 
@@ -27,6 +29,7 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
     try {
       await _repository.create(tenant);
       await loadTenants();
+      _ref.invalidate(unitsNotifierProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -36,6 +39,7 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
     try {
       await _repository.update(tenant);
       await loadTenants();
+      _ref.invalidate(unitsNotifierProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -45,6 +49,7 @@ class TenantsNotifier extends StateNotifier<AsyncValue<List<Tenant>>> {
     try {
       await _repository.delete(id);
       await loadTenants();
+      _ref.invalidate(unitsNotifierProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -71,6 +76,7 @@ final tenantsNotifierProvider = StateNotifierProvider.family<TenantsNotifier, As
     return TenantsNotifier(
       ref.watch(tenantRepositoryProvider),
       unitId,
+      ref,
     );
   },
 );

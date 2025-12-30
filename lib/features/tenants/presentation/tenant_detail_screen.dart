@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../data/models/tenant.dart';
 import '../logic/tenants_notifier.dart';
 import 'tenant_form_screen.dart';
 
@@ -166,6 +167,12 @@ class TenantDetailScreen extends ConsumerWidget {
                             'Duration',
                             '${(leaseDuration / 30).round()} months',
                           ),
+                        _buildInfoRow(
+                          context,
+                          Icons.schedule,
+                          'Payment Term',
+                          tenant.leaseTerm == LeaseTerm.monthly ? 'Monthly' : 'Annually',
+                        ),
                         if (tenant.depositAmount != null)
                           _buildInfoRow(
                             context,

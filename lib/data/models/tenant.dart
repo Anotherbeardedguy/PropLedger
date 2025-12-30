@@ -1,3 +1,5 @@
+enum LeaseTerm { monthly, annually }
+
 class Tenant {
   final String id;
   final String unitId;
@@ -6,6 +8,7 @@ class Tenant {
   final String? email;
   final DateTime? leaseStart;
   final DateTime? leaseEnd;
+  final LeaseTerm leaseTerm;
   final double? depositAmount;
   final String? notes;
   final DateTime created;
@@ -19,6 +22,7 @@ class Tenant {
     this.email,
     this.leaseStart,
     this.leaseEnd,
+    this.leaseTerm = LeaseTerm.monthly,
     this.depositAmount,
     this.notes,
     required this.created,
@@ -34,6 +38,7 @@ class Tenant {
       email: json['email'] as String?,
       leaseStart: json['lease_start'] != null ? DateTime.parse(json['lease_start'] as String) : null,
       leaseEnd: json['lease_end'] != null ? DateTime.parse(json['lease_end'] as String) : null,
+      leaseTerm: _parseLeaseterm(json['lease_term'] as String? ?? 'monthly'),
       depositAmount: json['deposit_amount'] != null
           ? (json['deposit_amount'] as num).toDouble()
           : null,
@@ -52,11 +57,20 @@ class Tenant {
       'email': email,
       'lease_start': leaseStart?.toIso8601String(),
       'lease_end': leaseEnd?.toIso8601String(),
+      'lease_term': _leaseTermToString(leaseTerm),
       'deposit_amount': depositAmount,
       'notes': notes,
       'created': created.toIso8601String(),
       'updated': updated.toIso8601String(),
     };
+  }
+
+  static LeaseTerm _parseLeaseterm(String term) {
+    return term == 'annually' ? LeaseTerm.annually : LeaseTerm.monthly;
+  }
+
+  static String _leaseTermToString(LeaseTerm term) {
+    return term == LeaseTerm.annually ? 'annually' : 'monthly';
   }
 
   bool get isLeaseExpiring {
@@ -73,6 +87,7 @@ class Tenant {
     String? email,
     DateTime? leaseStart,
     DateTime? leaseEnd,
+    LeaseTerm? leaseTerm,
     double? depositAmount,
     String? notes,
     DateTime? created,
@@ -86,6 +101,7 @@ class Tenant {
       email: email ?? this.email,
       leaseStart: leaseStart ?? this.leaseStart,
       leaseEnd: leaseEnd ?? this.leaseEnd,
+      leaseTerm: leaseTerm ?? this.leaseTerm,
       depositAmount: depositAmount ?? this.depositAmount,
       notes: notes ?? this.notes,
       created: created ?? this.created,

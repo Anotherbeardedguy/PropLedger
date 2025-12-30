@@ -25,11 +25,12 @@ class Properties extends Table {
 @DataClassName('UnitEntity')
 class Units extends Table {
   TextColumn get id => text()();
-  TextColumn get propertyId => text().references(Properties, #id)();
+  TextColumn get propertyId => text().nullable().references(Properties, #id)();
   TextColumn get unitName => text()();
   RealColumn get sizeSqm => real().nullable()();
   IntColumn get rooms => integer().nullable()();
   RealColumn get rentAmount => real()();
+  RealColumn get upkeepAmount => real().nullable()();
   TextColumn get status => text()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get created => dateTime()();
@@ -48,6 +49,7 @@ class Tenants extends Table {
   TextColumn get email => text().nullable()();
   DateTimeColumn get leaseStart => dateTime().nullable()();
   DateTimeColumn get leaseEnd => dateTime().nullable()();
+  TextColumn get leaseTerm => text().withDefault(const Constant('monthly'))();
   RealColumn get depositAmount => real().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get created => dateTime()();
@@ -113,7 +115,8 @@ class MaintenanceTasks extends Table {
 @DataClassName('LoanEntity')
 class Loans extends Table {
   TextColumn get id => text()();
-  TextColumn get propertyId => text().references(Properties, #id)();
+  TextColumn get propertyId => text().nullable().references(Properties, #id)();
+  TextColumn get unitId => text().nullable().references(Units, #id)();
   TextColumn get lender => text()();
   TextColumn get loanType => text().nullable()();
   RealColumn get originalAmount => real()();
@@ -193,7 +196,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {

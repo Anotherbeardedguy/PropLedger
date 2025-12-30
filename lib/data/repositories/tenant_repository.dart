@@ -9,6 +9,15 @@ class TenantRepository extends BaseRepository<Tenant> {
     required super.database,
   });
 
+  Future<void> _updateUnitStatus(String unitId, String status) async {
+    await (database.update(database.units)
+          ..where((tbl) => tbl.id.equals(unitId)))
+        .write(UnitsCompanion(
+      status: Value(status),
+      updated: Value(DateTime.now()),
+    ));
+  }
+
   @override
   Future<List<Tenant>> getAll() async {
     final entities = await database.select(database.tenants).get();
@@ -42,6 +51,7 @@ class TenantRepository extends BaseRepository<Tenant> {
   Future<Tenant> create(Tenant tenant) async {
     try {
       await database.into(database.tenants).insert(_modelToCompanion(tenant));
+      await _updateUnitStatus(tenant.unitId, 'occupied');
       return tenant;
     } catch (e) {
       throw DatabaseException('Failed to create tenant: $e');
@@ -51,7 +61,14 @@ class TenantRepository extends BaseRepository<Tenant> {
   @override
   Future<Tenant> update(Tenant tenant) async {
     try {
+      final oldTenant = await getById(tenant.id);
       await database.update(database.tenants).replace(_modelToCompanion(tenant));
+      
+      if (oldTenant != null && oldTenant.unitId != tenant.unitId) {
+        await _updateUnitStatus(oldTenant.unitId, 'vacant');
+        await _updateUnitStatus(tenant.unitId, 'occupied');
+      }
+      
       return tenant;
     } catch (e) {
       throw DatabaseException('Failed to update tenant: $e');
@@ -61,7 +78,12 @@ class TenantRepository extends BaseRepository<Tenant> {
   @override
   Future<void> delete(String id) async {
     try {
+      final tenant = await getById(id);
       await (database.delete(database.tenants)..where((tbl) => tbl.id.equals(id))).go();
+      
+      if (tenant != null) {
+        await _updateUnitStatus(tenant.unitId, 'vacant');
+      }
     } catch (e) {
       throw DatabaseException('Failed to delete tenant: $e');
     }
@@ -76,6 +98,7 @@ class TenantRepository extends BaseRepository<Tenant> {
       email: entity.email,
       leaseStart: entity.leaseStart,
       leaseEnd: entity.leaseEnd,
+      leaseTerm: entity.leaseTerm == 'annually' ? LeaseTerm.annually : LeaseTerm.monthly,
       depositAmount: entity.depositAmount,
       notes: entity.notes,
       created: entity.created,
@@ -92,6 +115,7 @@ class TenantRepository extends BaseRepository<Tenant> {
       email: Value(tenant.email),
       leaseStart: Value(tenant.leaseStart),
       leaseEnd: Value(tenant.leaseEnd),
+      leaseTerm: Value(tenant.leaseTerm == LeaseTerm.annually ? 'annually' : 'monthly'),
       depositAmount: Value(tenant.depositAmount),
       notes: Value(tenant.notes),
       created: Value(tenant.created),

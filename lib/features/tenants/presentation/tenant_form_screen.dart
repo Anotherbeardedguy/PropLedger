@@ -33,6 +33,7 @@ class _TenantFormScreenState extends ConsumerState<TenantFormScreen> {
   String? _selectedUnitId;
   DateTime? _leaseStart;
   DateTime? _leaseEnd;
+  LeaseTerm _leaseTerm = LeaseTerm.monthly;
   bool _isLoading = false;
 
   @override
@@ -47,6 +48,7 @@ class _TenantFormScreenState extends ConsumerState<TenantFormScreen> {
       _selectedUnitId = widget.tenant!.unitId;
       _leaseStart = widget.tenant!.leaseStart;
       _leaseEnd = widget.tenant!.leaseEnd;
+      _leaseTerm = widget.tenant!.leaseTerm;
     } else if (widget.preselectedUnitId != null) {
       _selectedUnitId = widget.preselectedUnitId;
     }
@@ -179,6 +181,32 @@ class _TenantFormScreenState extends ConsumerState<TenantFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<LeaseTerm>(
+                  value: _leaseTerm,
+                  decoration: const InputDecoration(
+                    labelText: 'Lease Term',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.schedule),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: LeaseTerm.monthly,
+                      child: Text('Monthly'),
+                    ),
+                    DropdownMenuItem(
+                      value: LeaseTerm.annually,
+                      child: Text('Annually'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _leaseTerm = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _depositController,
                   decoration: const InputDecoration(
@@ -288,6 +316,7 @@ class _TenantFormScreenState extends ConsumerState<TenantFormScreen> {
         email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
         leaseStart: _leaseStart,
         leaseEnd: _leaseEnd,
+        leaseTerm: _leaseTerm,
         depositAmount: _depositController.text.trim().isEmpty ? null : double.tryParse(_depositController.text.trim()),
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         created: widget.tenant?.created ?? now,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../data/models/unit.dart';
 import '../../logic/units_notifier.dart';
 import 'unit_form_dialog.dart';
 
@@ -71,9 +72,18 @@ class UnitsTab extends ConsumerWidget {
                         color: Colors.white,
                       ),
                     ),
-                    title: Text(unit.unitName),
-                    subtitle: Text(
-                      '${unit.rooms ?? 0} rooms • \$${unit.rentAmount.toStringAsFixed(0)}/mo',
+                    title: Text(
+                      unit.unitName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Rent: \$${unit.rentAmount.toStringAsFixed(2)}'),
+                        if (unit.upkeepAmount != null)
+                          Text('Upkeep: \$${unit.upkeepAmount!.toStringAsFixed(2)}'),
+                        Text(unit.status == UnitStatus.occupied ? 'Occupied' : 'Vacant'),
+                      ],
                     ),
                     trailing: Chip(
                       label: Text(
