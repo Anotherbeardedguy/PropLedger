@@ -8,15 +8,21 @@ import 'app/env.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Initialize Firebase (optional - app works in local-only mode without it)
+  try {
+    await Firebase.initializeApp();
 
-  // Configure Firebase emulator if enabled (for local development)
-  if (Env.useFirebaseEmulator) {
-    FirebaseFirestore.instance.useFirestoreEmulator(
-      Env.firestoreEmulatorHost,
-      Env.firestoreEmulatorPort,
-    );
+    // Configure Firebase emulator if enabled (for local development)
+    if (Env.useFirebaseEmulator) {
+      FirebaseFirestore.instance.useFirestoreEmulator(
+        Env.firestoreEmulatorHost,
+        Env.firestoreEmulatorPort,
+      );
+    }
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('⚠️ Firebase initialization skipped: $e');
+    debugPrint('ℹ️ App running in local-only mode');
   }
 
   runApp(const ProviderScope(child: PropLedgerApp()));
