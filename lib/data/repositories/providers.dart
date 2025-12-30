@@ -3,6 +3,7 @@ import '../local/database_provider.dart';
 import 'property_repository.dart';
 import 'unit_repository.dart';
 import 'tenant_repository.dart';
+import 'rent_payment_repository.dart';
 
 final propertyRepositoryProvider = Provider<PropertyRepository>((ref) {
   return PropertyRepository(
@@ -18,6 +19,12 @@ final unitRepositoryProvider = Provider<UnitRepository>((ref) {
 
 final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
   return TenantRepository(
+    database: ref.watch(databaseProvider),
+  );
+});
+
+final rentPaymentRepositoryProvider = Provider<RentPaymentRepository>((ref) {
+  return RentPaymentRepository(
     database: ref.watch(databaseProvider),
   );
 });

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../properties/presentation/properties_screen.dart';
 import '../../tenants/presentation/tenants_screen.dart';
+import '../../rent_payments/presentation/rent_payments_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -79,8 +80,13 @@ class DashboardScreen extends ConsumerWidget {
                         context,
                         icon: Icons.attach_money,
                         label: 'Rent',
-                        onTap: () {},
-                        enabled: false,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const RentPaymentsScreen(),
+                            ),
+                          );
+                        },
                       ),
                       _buildQuickActionCard(
                         context,
