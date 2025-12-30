@@ -34,14 +34,13 @@ class PropertiesScreen extends ConsumerWidget {
               title: 'No Properties Yet',
               message: 'Start building your rental portfolio by adding your first property.',
               actionLabel: 'Add Property',
-              onAction: () => _navigateToAddProperty(context),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add your first property to get started',
-                    style: TextStyle(color: Colors.grey[600]),
+              onAction: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PropertyFormScreen(),
                   ),
-                ],
-              ),
+                );
+              },
             );
           }
 
@@ -86,22 +85,9 @@ class PropertiesScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () {
-                  ref.read(propertiesNotifierProvider.notifier).refresh();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (error, _) => ErrorDisplay(
+          message: error.toString(),
+          onRetry: () => ref.refresh(propertiesNotifierProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
