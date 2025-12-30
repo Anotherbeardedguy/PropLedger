@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/property.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_display.dart';
 import '../logic/properties_notifier.dart';
 import 'property_detail_screen.dart';
 import 'property_form_screen.dart';
@@ -26,22 +29,12 @@ class PropertiesScreen extends ConsumerWidget {
       body: propertiesAsync.when(
         data: (properties) {
           if (properties.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.home_work_outlined,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No properties yet',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
+            return EmptyState(
+              icon: Icons.home_work,
+              title: 'No Properties Yet',
+              message: 'Start building your rental portfolio by adding your first property.',
+              actionLabel: 'Add Property',
+              onAction: () => _navigateToAddProperty(context),
                   const SizedBox(height: 8),
                   Text(
                     'Add your first property to get started',

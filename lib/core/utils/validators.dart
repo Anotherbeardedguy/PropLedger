@@ -57,4 +57,34 @@ class Validators {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     return emailRegex.hasMatch(value);
   }
+
+  static String? nonNegativeNumber(String? value, {String fieldName = 'Value'}) {
+    if (value == null || value.isEmpty) {
+      return null; // Optional field
+    }
+    final number = double.tryParse(value);
+    if (number == null || number < 0) {
+      return '$fieldName must be zero or a positive number';
+    }
+    return null;
+  }
+
+  static String? percentage(String? value, {String fieldName = 'Percentage'}) {
+    if (value == null || value.isEmpty) {
+      return '$fieldName is required';
+    }
+    final number = double.tryParse(value);
+    if (number == null || number < 0 || number > 100) {
+      return '$fieldName must be between 0 and 100';
+    }
+    return null;
+  }
+
+  static String? combine(List<String? Function()> validators) {
+    for (var validator in validators) {
+      final error = validator();
+      if (error != null) return error;
+    }
+    return null;
+  }
 }
