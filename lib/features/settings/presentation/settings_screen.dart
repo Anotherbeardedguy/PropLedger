@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/settings_notifier.dart';
+import '../logic/biometric_settings_notifier.dart';
+import '../../auth/logic/auth_notifier.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -123,17 +125,74 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ),
-          SwitchListTile(
-            secondary: const Icon(Icons.fingerprint),
-            title: const Text('Biometric Authentication'),
-            subtitle: const Text('Use fingerprint/face to unlock (coming soon)'),
-            value: false,
-            onChanged: (value) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Biometric auth not yet implemented'),
+          Consumer(
+            builder: (context, ref, _) {
+              final biometricSettings = ref.watch(biometricSettingsProvider);
+              return SwitchListTile(
+                secondary: const Icon(Icons.fingerprint),
+                title: const Text('Biometric Authentication'),
+                subtitle: Text(
+                  biometricSettings.isSupported
+                      ? (biometricSettings.isEnrolled
+                          ? 'Lock app with ${biometricSettings.availableBiometrics}'
+                          : 'No biometric credentials enrolled')
+                      : 'Not supported on this device',
+                ),
+                value: biometricSettings.isEnabled,
+                onChanged: biometricSettings.isSupported && biometricSettings.isEnrolled
+                    ? (value) async {
+                        try {
+                          final success = await ref
+                              .read(biometricSettingsProvider.notifier)
+                              .toggleBiometric(value);
+                          if (!success && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Authentication failed'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      }
+                    : null,
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Sign Out'),
+            subtitle: const Text('Sign out of your account'),
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
                 ),
               );
+              if (confirm == true && context.mounted) {
+                await ref.read(authNotifierProvider.notifier).signOut();
+              }
             },
           ),
           const Divider(),
