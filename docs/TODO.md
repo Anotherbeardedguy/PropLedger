@@ -40,35 +40,35 @@
 
 ---
 
-## Phase 2: Core Data Models & Local Storage
+## Phase 2: Core Data Models & Local Storage ✅ COMPLETED
 
 ### Data Models
-- [ ] Define Property model
-- [ ] Define Unit model
-- [ ] Define Tenant model
-- [ ] Define RentPayment model
+- [x] Define Property model
+- [x] Define Unit model (with nullable propertyId, upkeepAmount)
+- [x] Define Tenant model (with LeaseTerm enum)
+- [x] Define RentPayment model (with PaymentStatus enum)
 - [ ] Define Expense model
 - [ ] Define MaintenanceTask model
-- [ ] Define Loan model
+- [x] Define Loan model (with nullable propertyId, unitId)
 - [ ] Define LoanPayment model
 - [ ] Define Document model
-- [ ] Add JSON serialization for all models
-- [ ] Add validation logic to models
+- [x] Add JSON serialization for all models
+- [x] Add validation logic to models
 
 ### Local Database (Drift)
-- [ ] Set up Drift database configuration
-- [ ] Create Property table
-- [ ] Create Unit table
-- [ ] Create Tenant table
-- [ ] Create RentPayment table
+- [x] Set up Drift database configuration
+- [x] Create Property table
+- [x] Create Unit table (with upkeepAmount, nullable propertyId)
+- [x] Create Tenant table (with leaseTerm)
+- [x] Create RentPayment table
 - [ ] Create Expense table
 - [ ] Create MaintenanceTask table
-- [ ] Create Loan table
+- [x] Create Loan table (with nullable propertyId, unitId)
 - [ ] Create LoanPayment table
 - [ ] Create Document table
 - [ ] Create SyncQueue table (for offline changes)
-- [ ] Implement DAOs for all entities
-- [ ] Add database migrations strategy
+- [x] Implement DAOs for all entities (Property, Unit, Tenant, RentPayment, Loan)
+- [x] Add database migrations strategy (v1 → v2)
 
 ### PocketBase Collections
 - [ ] Create Property collection
@@ -86,77 +86,89 @@
 
 ---
 
-## Phase 3: Repository Layer
+## Phase 3: Repository Layer ✅ PARTIALLY COMPLETED
 
 ### Repository Pattern Implementation
-- [ ] Create base repository interface
-- [ ] Implement PropertyRepository
-  - [ ] CRUD operations (local + remote)
-  - [ ] Sync logic
-- [ ] Implement UnitRepository
-- [ ] Implement TenantRepository
-- [ ] Implement RentPaymentRepository
+- [x] Create base repository interface
+- [x] Implement PropertyRepository
+  - [x] CRUD operations (local)
+  - [ ] Sync logic (PocketBase - future)
+- [x] Implement UnitRepository
+- [x] Implement TenantRepository (with unit status updates)
+- [x] Implement RentPaymentRepository
 - [ ] Implement ExpenseRepository
 - [ ] Implement MaintenanceTaskRepository
-- [ ] Implement LoanRepository
+- [x] Implement LoanRepository
 - [ ] Implement LoanPaymentRepository
 - [ ] Implement DocumentRepository
 - [ ] Create SyncService for background sync
 - [ ] Implement conflict resolution strategy
 - [ ] Add retry logic with exponential backoff
 
----
-
-## Phase 4: Properties & Units Feature
-
-### UI Screens
-- [ ] Property list screen
-- [ ] Property detail screen
-- [ ] Add/Edit property form
-- [ ] Unit list (within property detail)
-- [ ] Add/Edit unit form
-- [ ] Unit detail view
-
-### Business Logic
-- [ ] Property CRUD operations
-- [ ] Unit CRUD operations
-- [ ] Link units to properties
-- [ ] Update unit occupancy status
-- [ ] Calculate property value and equity
-- [ ] Validate property/unit data
-
-### Testing
-- [ ] Manual test: Create property
-- [ ] Manual test: Add units to property
-- [ ] Manual test: Edit property details
-- [ ] Manual test: Delete property (with cascade)
-- [ ] Test offline CRUD operations
-- [ ] Test sync after offline changes
+**Note**: Local-only repositories completed. PocketBase sync implementation deferred.
 
 ---
 
-## Phase 5: Tenants & Leases Feature
+## Phase 4: Properties & Units Feature ✅ COMPLETED
 
 ### UI Screens
-- [ ] Tenant list screen
-- [ ] Tenant detail screen
-- [ ] Add/Edit tenant form
-- [ ] Lease information view
-- [ ] End lease flow
+- [x] Property list screen
+- [x] Property detail screen with tabs
+- [x] Add/Edit property form
+- [x] Unit list (within property detail tabs)
+- [x] Add/Edit unit form (dialog)
+- [x] Unit detail view (within units tab)
+- [x] Standalone units support (nullable propertyId)
 
 ### Business Logic
-- [ ] Tenant CRUD operations
-- [ ] Link tenant to unit
-- [ ] Auto-update unit status when tenant assigned
-- [ ] Calculate lease duration
-- [ ] Flag expiring leases (< 60 days)
-- [ ] Handle lease end and unit vacancy
+- [x] Property CRUD operations
+- [x] Unit CRUD operations
+- [x] Link units to properties (optional)
+- [x] Update unit occupancy status (vacant/occupied)
+- [x] Unit upkeep amount tracking
+- [x] Validate property/unit data
+- [ ] Calculate property value and equity (future)
 
 ### Testing
-- [ ] Manual test: Add tenant to unit
-- [ ] Manual test: View tenant details
-- [ ] Manual test: End lease
-- [ ] Verify unit status changes
+- [x] Manual test: Create property
+- [x] Manual test: Add units to property
+- [x] Manual test: Edit property details
+- [x] Manual test: Delete property
+- [x] Test unit occupancy status updates
+- [x] Test standalone units (no property)
+- [ ] Test offline CRUD operations (local-only mode)
+- [ ] Test sync after offline changes (PocketBase - future)
+
+---
+
+## Phase 5: Tenants & Leases Feature ✅ COMPLETED
+
+### UI Screens
+- [x] Tenant list screen (with unit filter)
+- [x] Tenant detail screen
+- [x] Add/Edit tenant form with lease term selector
+- [x] Lease information view (start, end, duration, term)
+- [ ] End lease flow (manual deletion for now)
+
+### Business Logic
+- [x] Tenant CRUD operations
+- [x] Link tenant to unit
+- [x] Auto-update unit status when tenant assigned (vacant → occupied)
+- [x] Auto-update unit status when tenant deleted (occupied → vacant)
+- [x] Calculate lease duration
+- [x] Lease term support (monthly/annually)
+- [x] Provider invalidation for real-time UI updates
+- [ ] Flag expiring leases (< 60 days) (future)
+- [ ] Handle lease end and unit vacancy (future automation)
+
+### Testing
+- [x] Manual test: Add tenant to unit
+- [x] Manual test: View tenant details
+- [x] Manual test: Edit tenant
+- [x] Manual test: Delete tenant
+- [x] Verify unit status changes (create/delete tenant)
+- [x] Test lease term selection (monthly/annually)
+- [x] Test real-time unit status updates
 
 ---
 
