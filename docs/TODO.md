@@ -348,7 +348,7 @@
 
 ---
 
-## Phase 11: Dashboard & Reports
+## Phase 11: Dashboard & Reports COMPLETED
 
 ### Dashboard UI
 - [x] Dashboard screen with KPI cards
@@ -361,13 +361,13 @@
 - [ ] Recent activity feed
 
 ### Analytics & Reports
-- [ ] Calculate total portfolio value
-- [ ] Calculate total equity
-- [ ] Calculate occupancy rate
-- [ ] Monthly cash flow calculation
-- [ ] YTD income and expenses
-- [ ] Property financial snapshot
-- [ ] Portfolio overview report
+- [x] Calculate total portfolio value
+- [x] Calculate total equity
+- [x] Calculate occupancy rate
+- [x] Monthly cash flow calculation
+- [x] YTD income and expenses
+- [x] Property financial snapshot
+- [x] Portfolio overview report
 
 ### Testing
 - [ ] Verify all dashboard metrics
