@@ -151,7 +151,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: statusColor?.withOpacity(0.2) ?? Colors.blue.shade100,
+          backgroundColor: statusColor?.withValues(alpha: 0.2) ?? Colors.blue.shade100,
           child: Icon(
             _getDocumentTypeIcon(document.documentType),
             color: statusColor ?? Colors.blue.shade700,

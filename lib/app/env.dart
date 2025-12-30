@@ -25,4 +25,16 @@ class Env {
     'FIRESTORE_EMULATOR_PORT',
     defaultValue: 8080,
   );
+
+  // PocketBase configuration (legacy, not currently used)
+  // Kept for potential future migration or testing
+  static const String pocketbaseUrl = String.fromEnvironment(
+    'POCKETBASE_URL',
+    defaultValue: 'http://localhost:8090',
+  );
+  
+  static const String pocketbaseApiPath = String.fromEnvironment(
+    'POCKETBASE_API_PATH',
+    defaultValue: '/api',
+  );
 }

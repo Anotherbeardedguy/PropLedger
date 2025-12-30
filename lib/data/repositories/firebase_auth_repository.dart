@@ -159,11 +159,13 @@ class FirebaseAuthRepository {
 
   /// Map Firebase User to App User
   app_user.User _mapFirebaseUserToAppUser(fb.User firebaseUser) {
+    final now = DateTime.now();
     return app_user.User(
       id: firebaseUser.uid,
       email: firebaseUser.email ?? '',
       name: firebaseUser.displayName ?? 'User',
-      createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
+      created: firebaseUser.metadata.creationTime ?? now,
+      updated: now,
     );
   }
 

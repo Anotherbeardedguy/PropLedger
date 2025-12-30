@@ -188,7 +188,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: priorityColor.withOpacity(0.2),
+          backgroundColor: priorityColor.withValues(alpha: 0.2),
           child: Icon(
             task.status == TaskStatus.done ? Icons.check_circle : Icons.build,
             color: priorityColor,
@@ -224,7 +224,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
                     _getStatusLabel(task.status),
                     style: const TextStyle(fontSize: 10),
                   ),
-                  backgroundColor: statusColor.withOpacity(0.2),
+                  backgroundColor: statusColor.withValues(alpha: 0.2),
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -234,7 +234,7 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
                     _getPriorityLabel(task.priority),
                     style: const TextStyle(fontSize: 10),
                   ),
-                  backgroundColor: priorityColor.withOpacity(0.2),
+                  backgroundColor: priorityColor.withValues(alpha: 0.2),
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
