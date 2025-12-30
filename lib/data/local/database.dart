@@ -223,8 +223,8 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           // Migrate to v3: Create DocumentLinks table and update Documents
           await m.createTable(documentLinks);
-          // Add fileName column to Documents with default value
-          await m.addColumn(documents, documents.fileName.withDefault(const Constant('')));
+          // Add fileName column to Documents with default value using custom SQL
+          await m.customStatement('ALTER TABLE documents ADD COLUMN file_name TEXT NOT NULL DEFAULT ""');
           await m.addColumn(units, units.upkeepAmount);
           
           // Add leaseTerm column to tenants table with default value
