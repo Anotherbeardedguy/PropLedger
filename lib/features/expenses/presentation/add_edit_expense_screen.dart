@@ -59,6 +59,7 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
       _notesController.text = expense.notes ?? '';
       _selectedPropertyId = expense.propertyId;
       _selectedUnitId = expense.unitId;
+      _selectedTenantId = expense.tenantId;
       _selectedDate = expense.date;
       _recurring = expense.recurring;
       _existingReceiptPath = expense.receiptFile;
@@ -158,10 +159,18 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
                 error: (error, _) => Text('Error: $error'),
               ),
             const SizedBox(height: 16),
-            if (tenantsAsync != null)
+            if (_selectedUnitId != null && tenantsAsync != null)
               tenantsAsync.when(
                 data: (allTenants) {
                   final unitTenants = allTenants.where((t) => t.unitId == _selectedUnitId).toList();
+
+                  // Ensure selected tenant is valid for this unit
+                  if (_selectedTenantId != null && !unitTenants.any((t) => t.id == _selectedTenantId)) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      setState(() => _selectedTenantId = null);
+                    });
+                  }
+
                   return DropdownButtonFormField<String>(
                     value: _selectedTenantId,
                     decoration: const InputDecoration(
