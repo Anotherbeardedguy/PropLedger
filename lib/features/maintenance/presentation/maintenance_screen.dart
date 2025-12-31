@@ -112,12 +112,17 @@ class _MaintenanceScreenState extends ConsumerState<MaintenanceScreen> {
                   ),
                 ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) {
-                    final task = tasks[index];
-                    return _buildTaskCard(context, task, propertiesAsync);
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(maintenanceNotifierProvider.notifier).loadTasks();
                   },
+                  child: ListView.builder(
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return _buildTaskCard(context, task, propertiesAsync);
+                    },
+                  ),
                 ),
               ),
             ],

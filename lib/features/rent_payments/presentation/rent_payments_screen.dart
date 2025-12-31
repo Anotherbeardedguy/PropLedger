@@ -242,13 +242,17 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: payments.length,
-      itemBuilder: (context, index) {
-        final payment = payments[index];
-        final isLate = payment.status == PaymentStatus.late;
-        final isPaid = payment.status == PaymentStatus.paid;
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(rentPaymentsNotifierProvider(null).notifier).loadPayments();
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: payments.length,
+        itemBuilder: (context, index) {
+          final payment = payments[index];
+          final isLate = payment.status == PaymentStatus.late;
+          final isPaid = payment.status == PaymentStatus.paid;
         
         // Get tenant and unit info
         final tenant = tenants.cast<dynamic>().firstWhere(
@@ -341,7 +345,8 @@ class _RentPaymentsScreenState extends ConsumerState<RentPaymentsScreen> {
                   ),
           ),
         );
-      },
+        },
+      ),
     );
   }
 

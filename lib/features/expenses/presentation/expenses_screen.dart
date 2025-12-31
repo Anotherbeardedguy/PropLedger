@@ -115,12 +115,17 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: expenses.length,
-                  itemBuilder: (context, index) {
-                    final expense = expenses[index];
-                    return _buildExpenseCard(context, expense, propertiesAsync);
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(expensesNotifierProvider.notifier).loadExpenses();
                   },
+                  child: ListView.builder(
+                    itemCount: expenses.length,
+                    itemBuilder: (context, index) {
+                      final expense = expenses[index];
+                      return _buildExpenseCard(context, expense, propertiesAsync);
+                    },
+                  ),
                 ),
               ),
             ],

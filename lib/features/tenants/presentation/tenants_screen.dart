@@ -8,16 +8,58 @@ import '../logic/tenants_notifier.dart';
 import 'tenant_detail_screen.dart';
 import 'tenant_form_screen.dart';
 
-class TenantsScreen extends ConsumerWidget {
+class TenantsScreen extends ConsumerStatefulWidget {
   const TenantsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TenantsScreen> createState() => _TenantsScreenState();
+}
+
+class _TenantsScreenState extends ConsumerState<TenantsScreen> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tenants'),
+        title: _searchQuery.isEmpty
+            ? const Text('Tenants')
+            : TextField(
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search tenants...',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              ),
+        actions: [
+          if (_searchQuery.isEmpty)
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                setState(() {
+                  _searchQuery = ' ';
+                });
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
+            ),
+        ],
       ),
       body: tenantsAsync.when(
         loading: () => const ListSkeleton(itemCount: 5),
@@ -42,15 +84,24 @@ class TenantsScreen extends ConsumerWidget {
             );
           }
 
+          // Apply search filter
+          final filteredTenants = tenants.where((tenant) {
+            if (_searchQuery.trim().isEmpty) return true;
+            final query = _searchQuery.trim().toLowerCase();
+            return tenant.name.toLowerCase().contains(query) ||
+                   (tenant.email?.toLowerCase().contains(query) ?? false) ||
+                   (tenant.phone?.toLowerCase().contains(query) ?? false);
+          }).toList();
+
           return RefreshIndicator(
             onRefresh: () async {
               await ref.read(tenantsNotifierProvider(null).notifier).loadTenants();
             },
             child: ListView.builder(
-              itemCount: tenants.length,
+              itemCount: filteredTenants.length,
               padding: const EdgeInsets.all(16),
               itemBuilder: (context, index) {
-                final tenant = tenants[index];
+                final tenant = filteredTenants[index];
                 final leaseEnd = tenant.leaseEnd;
                 final isLeaseExpiringSoon = leaseEnd != null &&
                     leaseEnd.isAfter(DateTime.now()) &&

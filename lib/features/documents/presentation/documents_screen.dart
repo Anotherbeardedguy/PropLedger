@@ -96,17 +96,22 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                   ),
                 ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: documents.length,
-                  itemBuilder: (context, index) {
-                    final document = documents[index];
-                    return _buildDocumentCard(
-                      context,
-                      document,
-                      propertiesAsync,
-                      tenantsAsync,
-                    );
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(documentsNotifierProvider.notifier).loadDocuments();
                   },
+                  child: ListView.builder(
+                    itemCount: documents.length,
+                    itemBuilder: (context, index) {
+                      final document = documents[index];
+                      return _buildDocumentCard(
+                        context,
+                        document,
+                        propertiesAsync,
+                        tenantsAsync,
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

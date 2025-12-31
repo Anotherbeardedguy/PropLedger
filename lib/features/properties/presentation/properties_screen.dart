@@ -9,18 +9,58 @@ import '../../../features/settings/logic/settings_notifier.dart';
 import 'property_detail_screen.dart';
 import 'property_form_screen.dart';
 
-class PropertiesScreen extends ConsumerWidget {
+class PropertiesScreen extends ConsumerStatefulWidget {
   const PropertiesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PropertiesScreen> createState() => _PropertiesScreenState();
+}
+
+class _PropertiesScreenState extends ConsumerState<PropertiesScreen> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
     final settings = ref.watch(settingsNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Properties'),
+        title: _searchQuery.isEmpty
+            ? const Text('Properties')
+            : TextField(
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search properties...',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              ),
         actions: [
+          if (_searchQuery.isEmpty)
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                setState(() {
+                  _searchQuery = ' '; // Trigger search mode
+                });
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -47,14 +87,22 @@ class PropertiesScreen extends ConsumerWidget {
             );
           }
 
+          // Apply search filter
+          final filteredProperties = properties.where((property) {
+            if (_searchQuery.trim().isEmpty) return true;
+            final query = _searchQuery.trim().toLowerCase();
+            return property.name.toLowerCase().contains(query) ||
+                   property.address.toLowerCase().contains(query);
+          }).toList();
+
           return RefreshIndicator(
             onRefresh: () =>
                 ref.read(propertiesNotifierProvider.notifier).refresh(),
             child: ListView.builder(
               padding: const EdgeInsets.all(8),
-              itemCount: properties.length,
+              itemCount: filteredProperties.length,
               itemBuilder: (context, index) {
-                final property = properties[index];
+                final property = filteredProperties[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                   child: ListTile(

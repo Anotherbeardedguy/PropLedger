@@ -137,12 +137,18 @@ class _LoansScreenState extends ConsumerState<LoansScreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: loans.length,
-                  itemBuilder: (context, index) {
-                    final loan = loans[index];
-                    return _buildLoanCard(context, loan, propertiesAsync, settings);
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(loansNotifierProvider.notifier).loadLoans();
                   },
+                  child: ListView.builder(
+                    itemCount: loans.length,
+                    padding: const EdgeInsets.all(16),
+                    itemBuilder: (context, index) {
+                      final loan = loans[index];
+                      return _buildLoanCard(context, loan, propertiesAsync, settings);
+                    },
+                  ),
                 ),
               ),
             ],
