@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'dart:io';
+
+class PdfViewerScreen extends StatelessWidget {
+  final String filePath;
+  final String fileName;
+
+  const PdfViewerScreen({
+    super.key,
+    required this.filePath,
+    required this.fileName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(fileName),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () => _shareDocument(context),
+            tooltip: 'Share',
+          ),
+        ],
+      ),
+      body: SfPdfViewer.file(
+        File(filePath),
+        enableDoubleTapZooming: true,
+        enableTextSelection: true,
+      ),
+    );
+  }
+
+  Future<void> _shareDocument(BuildContext context) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Share feature coming soon'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+}
