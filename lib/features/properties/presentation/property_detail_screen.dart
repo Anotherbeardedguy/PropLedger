@@ -4,6 +4,7 @@ import '../logic/properties_notifier.dart';
 import 'property_form_screen.dart';
 import 'widgets/units_tab.dart';
 import 'widgets/tenants_tab.dart';
+import 'widgets/loans_tab.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 
@@ -97,7 +98,7 @@ class PropertyDetailScreen extends ConsumerWidget {
                 _buildInfoTab(context, property, settings),
                 UnitsTab(propertyId: propertyId),
                 TenantsTab(propertyId: propertyId),
-                Center(child: Text('Loans - Coming Soon')),
+                LoansTab(propertyId: propertyId),
               ],
             ),
           ),
