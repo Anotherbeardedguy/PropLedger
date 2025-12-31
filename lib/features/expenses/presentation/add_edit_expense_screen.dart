@@ -63,6 +63,9 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
       _selectedDate = expense.date;
       _recurring = expense.recurring;
       _existingReceiptPath = expense.receiptFile;
+    } else {
+      // Smart default: set expense date to today
+      _selectedDate = DateTime.now();
     }
   }
 

@@ -42,6 +42,9 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
       _dueDate = widget.payment!.dueDate;
       _paidDate = widget.payment!.paidDate;
       _status = widget.payment!.status;
+    } else {
+      // Smart default: set due date to today for new payments
+      _dueDate = DateTime.now();
     }
   }
 

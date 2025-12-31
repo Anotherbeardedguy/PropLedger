@@ -136,7 +136,9 @@ class _PropertyFormScreenState extends ConsumerState<PropertyFormScreen> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
+              autofocus: widget.property == null,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
                 labelText: 'Property Name',
                 hintText: 'e.g., Sunset Apartments',
                 border: OutlineInputBorder(),
