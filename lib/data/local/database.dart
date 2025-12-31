@@ -81,12 +81,14 @@ class Expenses extends Table {
   TextColumn get id => text()();
   TextColumn get propertyId => text().references(Properties, #id)();
   TextColumn get unitId => text().nullable().references(Units, #id)();
+  TextColumn get tenantId => text().nullable().references(Tenants, #id)();
   TextColumn get category => text()();
   RealColumn get amount => real()();
   DateTimeColumn get date => dateTime()();
   BoolColumn get recurring => boolean().withDefault(const Constant(false))();
   TextColumn get notes => text().nullable()();
   TextColumn get receiptFile => text().nullable()();
+  BoolColumn get deductedFromDeposit => boolean().withDefault(const Constant(false))();
   DateTimeColumn get created => dateTime()();
   DateTimeColumn get updated => dateTime()();
 
@@ -104,6 +106,7 @@ class MaintenanceTasks extends Table {
   TextColumn get status => text()();
   DateTimeColumn get dueDate => dateTime().nullable()();
   RealColumn get cost => real().nullable()();
+  TextColumn get expenseId => text().nullable().references(Expenses, #id)();
   TextColumn get attachments => text().nullable()();
   DateTimeColumn get created => dateTime()();
   DateTimeColumn get updated => dateTime()();
@@ -220,7 +223,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -306,6 +309,27 @@ class AppDatabase extends _$AppDatabase {
                 created: DateTime.now(),
               ),
             );
+          }
+        }
+        
+        if (from < 5) {
+          // Migrate to v5: Add tenantId and deductedFromDeposit to expenses, expenseId to maintenance
+          try {
+            await m.addColumn(expenses, expenses.tenantId);
+          } catch (e) {
+            print('tenantId column may already exist: $e');
+          }
+          
+          try {
+            await m.addColumn(expenses, expenses.deductedFromDeposit);
+          } catch (e) {
+            print('deductedFromDeposit column may already exist: $e');
+          }
+          
+          try {
+            await m.addColumn(maintenanceTasks, maintenanceTasks.expenseId);
+          } catch (e) {
+            print('expenseId column may already exist: $e');
           }
         }
       },
