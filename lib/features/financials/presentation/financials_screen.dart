@@ -8,6 +8,8 @@ import '../../expenses/logic/expenses_notifier.dart';
 import '../../loans/logic/loans_notifier.dart';
 import '../../maintenance/logic/maintenance_notifier.dart';
 import '../../properties/logic/units_notifier.dart';
+import '../../properties/logic/properties_notifier.dart';
+import '../../tenants/logic/tenants_notifier.dart';
 import '../widgets/profit_loss_card.dart';
 import '../widgets/cashflow_trend_card.dart';
 import '../widgets/property_performance_card.dart';
@@ -30,6 +32,8 @@ class _FinancialsScreenState extends ConsumerState<FinancialsScreen> {
     final loansAsync = ref.watch(loansNotifierProvider);
     final maintenanceAsync = ref.watch(maintenanceNotifierProvider);
     final unitsAsync = ref.watch(unitsNotifierProvider(null));
+    final propertiesAsync = ref.watch(propertiesNotifierProvider);
+    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
     final settings = ref.watch(settingsNotifierProvider);
 
     return Scaffold(
@@ -65,38 +69,54 @@ class _FinancialsScreenState extends ConsumerState<FinancialsScreen> {
                           data: (maintenance) {
                             return unitsAsync.when(
                               data: (units) {
-                                final cashflowService = CashflowService();
-                                final currentMonth = cashflowService.calculateMonthlyCashflow(
-                                  rentPayments: payments,
-                                  loans: loans,
-                                  units: units,
-                                  expenses: expenses,
-                                  maintenanceTasks: maintenance,
-                                );
+                                return propertiesAsync.when(
+                                  data: (properties) {
+                                    return tenantsAsync.when(
+                                      data: (tenants) {
+                                        final cashflowService = CashflowService();
+                                        final currentMonth = cashflowService.calculateMonthlyCashflow(
+                                          rentPayments: payments,
+                                          loans: loans,
+                                          units: units,
+                                          expenses: expenses,
+                                          maintenanceTasks: maintenance,
+                                        );
 
-                                return Column(
-                                  children: [
-                                    ProfitLossCard(
-                                      summary: currentMonth,
-                                      currency: settings.currency,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    CashflowTrendCard(
-                                      cashflowService: cashflowService,
-                                      rentPayments: payments,
-                                      loans: loans,
-                                      units: units,
-                                      expenses: expenses,
-                                      maintenanceTasks: maintenance,
-                                      currency: settings.currency,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    PropertyPerformanceCard(
-                                      rentPayments: payments,
-                                      expenses: expenses,
-                                      currency: settings.currency,
-                                    ),
-                                  ],
+                                        return Column(
+                                          children: [
+                                            ProfitLossCard(
+                                              summary: currentMonth,
+                                              currency: settings.currency,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            CashflowTrendCard(
+                                              cashflowService: cashflowService,
+                                              rentPayments: payments,
+                                              loans: loans,
+                                              units: units,
+                                              expenses: expenses,
+                                              maintenanceTasks: maintenance,
+                                              currency: settings.currency,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            PropertyPerformanceCard(
+                                              rentPayments: payments,
+                                              expenses: expenses,
+                                              loans: loans,
+                                              units: units,
+                                              tenants: tenants,
+                                              properties: properties,
+                                              currency: settings.currency,
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                      loading: () => const Center(child: CircularProgressIndicator()),
+                                      error: (e, _) => Center(child: Text('Error: $e')),
+                                    );
+                                  },
+                                  loading: () => const Center(child: CircularProgressIndicator()),
+                                  error: (e, _) => Center(child: Text('Error: $e')),
                                 );
                               },
                               loading: () => const Center(child: CircularProgressIndicator()),
