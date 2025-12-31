@@ -150,6 +150,17 @@ class LoanPayments extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('LoanPropertyLinkEntity')
+class LoanPropertyLinks extends Table {
+  TextColumn get id => text()();
+  TextColumn get loanId => text().references(Loans, #id)();
+  TextColumn get propertyId => text().references(Properties, #id)();
+  DateTimeColumn get created => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('DocumentEntity')
 class Documents extends Table {
   TextColumn get id => text()();
@@ -199,6 +210,7 @@ class SyncQueue extends Table {
     MaintenanceTasks,
     Loans,
     LoanPayments,
+    LoanPropertyLinks,
     Documents,
     DocumentLinks,
     SyncQueue,
@@ -208,7 +220,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -269,6 +281,31 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(loans, loans.unitId);
           } catch (e) {
             print('unitId column may already exist: $e');
+          }
+        }
+        
+        if (from < 4) {
+          // Migrate to v4: Add LoanPropertyLinks table for multi-property loan support
+          await m.createTable(loanPropertyLinks);
+          
+          // Migrate existing loans to use the new junction table
+          // For each loan with a propertyId, create a link entry
+          final existingLoans = await customSelect(
+            'SELECT id, property_id FROM loans WHERE property_id IS NOT NULL',
+          ).get();
+          
+          for (final loan in existingLoans) {
+            final loanId = loan.read<String>('id');
+            final propertyId = loan.read<String>('property_id');
+            
+            await into(loanPropertyLinks).insert(
+              LoanPropertyLinksCompanion.insert(
+                id: 'lpl_${loanId}_$propertyId',
+                loanId: loanId,
+                propertyId: propertyId,
+                created: DateTime.now(),
+              ),
+            );
           }
         }
       },
