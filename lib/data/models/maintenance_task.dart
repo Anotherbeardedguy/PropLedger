@@ -11,6 +11,7 @@ class MaintenanceTask {
   final TaskStatus status;
   final DateTime? dueDate;
   final double? cost;
+  final String? expenseId;
   final String? attachments;
   final DateTime created;
   final DateTime updated;
@@ -24,6 +25,7 @@ class MaintenanceTask {
     required this.status,
     this.dueDate,
     this.cost,
+    this.expenseId,
     this.attachments,
     required this.created,
     required this.updated,
@@ -41,6 +43,7 @@ class MaintenanceTask {
           ? DateTime.parse(json['due_date'] as String)
           : null,
       cost: json['cost'] != null ? (json['cost'] as num).toDouble() : null,
+      expenseId: json['expense_id'] as String?,
       attachments: json['attachments'] as String?,
       created: DateTime.parse(json['created'] as String),
       updated: DateTime.parse(json['updated'] as String),
@@ -57,6 +60,7 @@ class MaintenanceTask {
       'status': _statusToString(status),
       'due_date': dueDate?.toIso8601String(),
       'cost': cost,
+      'expense_id': expenseId,
       'attachments': attachments,
       'created': created.toIso8601String(),
       'updated': updated.toIso8601String(),
@@ -125,6 +129,7 @@ class MaintenanceTask {
     TaskStatus? status,
     DateTime? dueDate,
     double? cost,
+    String? expenseId,
     String? attachments,
     DateTime? created,
     DateTime? updated,
@@ -138,6 +143,7 @@ class MaintenanceTask {
       status: status ?? this.status,
       dueDate: dueDate ?? this.dueDate,
       cost: cost ?? this.cost,
+      expenseId: expenseId ?? this.expenseId,
       attachments: attachments ?? this.attachments,
       created: created ?? this.created,
       updated: updated ?? this.updated,

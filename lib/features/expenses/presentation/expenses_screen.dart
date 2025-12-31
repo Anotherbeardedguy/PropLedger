@@ -139,26 +139,26 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     );
   }
 
-  List<Expense> _applyFilters(List<Expense> expenses) {
-    var filtered = expenses;
+  List<Expense> _applyFilters(List<Expense> allExpenses) {
+    var expenses = allExpenses.where((e) => !e.deductedFromDeposit).toList();
 
     if (_selectedPropertyId != null) {
-      filtered = filtered.where((e) => e.propertyId == _selectedPropertyId).toList();
+      expenses = expenses.where((e) => e.propertyId == _selectedPropertyId).toList();
     }
 
     if (_selectedCategory != null) {
-      filtered = filtered.where((e) => e.category == _selectedCategory).toList();
+      expenses = expenses.where((e) => e.category == _selectedCategory).toList();
     }
 
     if (_startDate != null) {
-      filtered = filtered.where((e) => e.date.isAfter(_startDate!) || e.date.isAtSameMomentAs(_startDate!)).toList();
+      expenses = expenses.where((e) => e.date.isAfter(_startDate!.subtract(const Duration(days: 1)))).toList();
     }
 
     if (_endDate != null) {
-      filtered = filtered.where((e) => e.date.isBefore(_endDate!) || e.date.isAtSameMomentAs(_endDate!)).toList();
+      expenses = expenses.where((e) => e.date.isBefore(_endDate!.add(const Duration(days: 1)))).toList();
     }
 
-    return filtered;
+    return expenses;
   }
 
   bool _hasActiveFilters() {

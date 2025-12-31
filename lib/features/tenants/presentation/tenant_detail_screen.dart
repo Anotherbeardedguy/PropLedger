@@ -173,13 +173,50 @@ class TenantDetailScreen extends ConsumerWidget {
                           'Payment Term',
                           tenant.leaseTerm == LeaseTerm.monthly ? 'Monthly' : 'Annually',
                         ),
-                        if (tenant.depositAmount != null)
+                        if (tenant.depositAmount != null) ...[
                           _buildInfoRow(
                             context,
                             Icons.account_balance_wallet,
                             'Deposit',
                             '\$${tenant.depositAmount!.toStringAsFixed(2)}',
                           ),
+                          if (tenant.depositAmount! < 100)
+                            Container(
+                              margin: const EdgeInsets.only(top: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: tenant.depositAmount! <= 0 
+                                  ? Colors.red.withValues(alpha: 0.1)
+                                  : Colors.orange.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: tenant.depositAmount! <= 0 ? Colors.red : Colors.orange,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber,
+                                    color: tenant.depositAmount! <= 0 ? Colors.red : Colors.orange,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      tenant.depositAmount! <= 0
+                                        ? 'Deposit depleted - Refill required'
+                                        : 'Low deposit - Consider refilling',
+                                      style: TextStyle(
+                                        color: tenant.depositAmount! <= 0 ? Colors.red : Colors.orange,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ],
                     ),
                   ),

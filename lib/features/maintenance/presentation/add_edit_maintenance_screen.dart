@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/maintenance_task.dart';
+import '../../../data/models/expense.dart';
 import '../logic/maintenance_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import '../../properties/logic/units_notifier.dart';
+import '../../expenses/logic/expenses_notifier.dart';
 
 class AddEditMaintenanceScreen extends ConsumerStatefulWidget {
   final MaintenanceTask? task;
@@ -26,6 +28,7 @@ class _AddEditMaintenanceScreenState extends ConsumerState<AddEditMaintenanceScr
   TaskPriority _priority = TaskPriority.medium;
   TaskStatus _status = TaskStatus.open;
   DateTime? _dueDate;
+  bool _createExpense = false;
 
   bool get _isEditing => widget.task != null;
 
@@ -246,6 +249,12 @@ class _AddEditMaintenanceScreenState extends ConsumerState<AddEditMaintenanceScr
                 helperText: 'Actual or estimated cost',
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (value) {
+                // Disable expense creation checkbox if no cost
+                if (value.isEmpty && _createExpense) {
+                  setState(() => _createExpense = false);
+                }
+              },
               validator: (value) {
                 if (value != null && value.isNotEmpty) {
                   final cost = double.tryParse(value);
@@ -255,6 +264,21 @@ class _AddEditMaintenanceScreenState extends ConsumerState<AddEditMaintenanceScr
                 }
                 return null;
               },
+            ),
+            const SizedBox(height: 16),
+            CheckboxListTile(
+              value: _createExpense,
+              onChanged: _costController.text.isEmpty
+                  ? null
+                  : (value) => setState(() => _createExpense = value ?? false),
+              title: const Text('Create expense from this maintenance task'),
+              subtitle: Text(
+                _costController.text.isEmpty
+                    ? 'Enter a cost to enable'
+                    : 'Links maintenance task to expense (avoids duplication)',
+              ),
+              enabled: _costController.text.isNotEmpty,
+              secondary: const Icon(Icons.receipt_long),
             ),
             const SizedBox(height: 32),
             ElevatedButton(
@@ -286,7 +310,32 @@ class _AddEditMaintenanceScreenState extends ConsumerState<AddEditMaintenanceScr
 
   void _saveTask() async {
     if (_formKey.currentState!.validate()) {
-      final notifier = ref.read(maintenanceNotifierProvider.notifier);
+      final maintenanceNotifier = ref.read(maintenanceNotifierProvider.notifier);
+      String? linkedExpenseId;
+
+      // Create expense if checkbox is checked
+      if (_createExpense && _costController.text.isNotEmpty) {
+        final expensesNotifier = ref.read(expensesNotifierProvider.notifier);
+        linkedExpenseId = const Uuid().v4();
+        
+        final expense = Expense(
+          id: linkedExpenseId,
+          propertyId: _selectedPropertyId!,
+          unitId: _selectedUnitId,
+          tenantId: null,
+          category: 'Maintenance',
+          amount: double.parse(_costController.text),
+          date: DateTime.now(),
+          recurring: false,
+          notes: 'Linked to maintenance task: ${_descriptionController.text}',
+          receiptFile: null,
+          deductedFromDeposit: false,
+          created: DateTime.now(),
+          updated: DateTime.now(),
+        );
+
+        await expensesNotifier.createExpense(expense);
+      }
 
       final task = MaintenanceTask(
         id: _isEditing ? widget.task!.id : const Uuid().v4(),
@@ -297,21 +346,28 @@ class _AddEditMaintenanceScreenState extends ConsumerState<AddEditMaintenanceScr
         status: _status,
         dueDate: _dueDate,
         cost: _costController.text.isEmpty ? null : double.parse(_costController.text),
+        expenseId: linkedExpenseId ?? (_isEditing ? widget.task!.expenseId : null),
         attachments: _isEditing ? widget.task!.attachments : null,
         created: _isEditing ? widget.task!.created : DateTime.now(),
         updated: DateTime.now(),
       );
 
       if (_isEditing) {
-        await notifier.updateTask(task);
+        await maintenanceNotifier.updateTask(task);
       } else {
-        await notifier.createTask(task);
+        await maintenanceNotifier.createTask(task);
       }
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isEditing ? 'Task updated' : 'Task added')),
+          SnackBar(
+            content: Text(
+              _createExpense
+                  ? 'Task and expense created successfully'
+                  : _isEditing ? 'Task updated' : 'Task added',
+            ),
+          ),
         );
       }
     }
