@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
+import '../../properties/logic/units_notifier.dart';
+import '../../tenants/logic/tenants_notifier.dart';
 import '../../rent_payments/logic/rent_payments_notifier.dart';
 import '../../expenses/logic/expenses_notifier.dart';
 import '../../loans/logic/loans_notifier.dart';
@@ -13,6 +15,8 @@ class PropertyFinancialSnapshotCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
+    final unitsAsync = ref.watch(unitsNotifierProvider(null));
+    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
     final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
     final expensesAsync = ref.watch(expensesNotifierProvider);
     final loansAsync = ref.watch(loansNotifierProvider);
@@ -56,22 +60,32 @@ class PropertyFinancialSnapshotCard extends ConsumerWidget {
                   );
                 }
 
-                return paymentsAsync.when(
-                  data: (payments) => expensesAsync.when(
-                    data: (expenses) => loansAsync.when(
-                      data: (loans) {
-                        return Column(
-                          children: properties.map((property) {
-                            final snapshot = _calculateSnapshot(
-                              property,
-                              payments,
-                              expenses,
-                              loans,
+                return unitsAsync.when(
+                  data: (units) => tenantsAsync.when(
+                    data: (tenants) => paymentsAsync.when(
+                      data: (payments) => expensesAsync.when(
+                        data: (expenses) => loansAsync.when(
+                          data: (loans) {
+                            return Column(
+                              children: properties.map((property) {
+                                final snapshot = _calculateSnapshot(
+                                  property,
+                                  units,
+                                  tenants,
+                                  payments,
+                                  expenses,
+                                  loans,
+                                );
+                                return _buildPropertyRow(context, snapshot, settings);
+                              }).toList(),
                             );
-                            return _buildPropertyRow(context, snapshot, settings);
-                          }).toList(),
-                        );
-                      },
+                          },
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (e, _) => Text('Error: $e'),
+                        ),
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => Text('Error: $e'),
+                      ),
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (e, _) => Text('Error: $e'),
                     ),
@@ -103,6 +117,8 @@ class PropertyFinancialSnapshotCard extends ConsumerWidget {
 
   PropertySnapshot _calculateSnapshot(
     property,
+    List<dynamic> allUnits,
+    List<dynamic> allTenants,
     List<dynamic> allPayments,
     List<dynamic> allExpenses,
     List<dynamic> allLoans,
@@ -110,9 +126,18 @@ class PropertyFinancialSnapshotCard extends ConsumerWidget {
     final now = DateTime.now();
     final thirtyDaysAgo = now.subtract(const Duration(days: 30));
 
-    // Filter data for this property (last 30 days)
+    // Get units for this property
+    final propertyUnits = allUnits.where((u) => u.propertyId == property.id).toList();
+    final propertyUnitIds = propertyUnits.map((u) => u.id).toSet();
+    
+    // Get tenants for this property's units
+    final propertyTenants = allTenants.where((t) => propertyUnitIds.contains(t.unitId)).toList();
+    final propertyTenantIds = propertyTenants.map((t) => t.id).toSet();
+
+    // Filter payments for this property's tenants (last 30 days, paid only)
     final income = allPayments
         .where((p) =>
+            propertyTenantIds.contains(p.tenantId) &&
             p.paidDate != null &&
             p.paidDate!.isAfter(thirtyDaysAgo))
         .fold<double>(0, (sum, p) => sum + p.amount);
@@ -126,7 +151,7 @@ class PropertyFinancialSnapshotCard extends ConsumerWidget {
     final propertyLoans = allLoans.where((l) => l.propertyId == property.id).toList();
     final totalDebt = propertyLoans.fold<double>(
       0,
-      (sum, l) => sum + (l.originalAmount - l.totalPaid),
+      (sum, l) => sum + l.currentBalance,
     );
 
     final noi = income - expenses;
