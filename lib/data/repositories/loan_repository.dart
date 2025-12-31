@@ -16,11 +16,18 @@ class LoanRepository extends BaseRepository<Loan> {
   }
 
   Future<List<Loan>> getByPropertyId(String propertyId) async {
-    final entities = await (database.select(database.loans)
-          ..where((tbl) => tbl.propertyId.equals(propertyId))
-          ..orderBy([(tbl) => OrderingTerm.desc(tbl.created)]))
-        .get();
-    return entities.map(_entityToModel).toList();
+    // Use junction table to support multi-property loans
+    final query = database.select(database.loans).join([
+      innerJoin(
+        database.loanPropertyLinks,
+        database.loanPropertyLinks.loanId.equalsExp(database.loans.id),
+      ),
+    ])
+      ..where(database.loanPropertyLinks.propertyId.equals(propertyId))
+      ..orderBy([OrderingTerm.desc(database.loans.created)]);
+    
+    final results = await query.get();
+    return results.map((row) => _entityToModel(row.readTable(database.loans))).toList();
   }
 
   Future<double> getTotalLoanBalance() async {
@@ -40,6 +47,17 @@ class LoanRepository extends BaseRepository<Loan> {
   Future<Loan> create(Loan loan) async {
     try {
       await database.into(database.loans).insert(_modelToCompanion(loan));
+      
+      // Also create junction table entry for property relationship
+      await database.into(database.loanPropertyLinks).insert(
+        LoanPropertyLinksCompanion.insert(
+          id: 'lpl_${loan.id}_${loan.propertyId}',
+          loanId: loan.id,
+          propertyId: loan.propertyId,
+          created: DateTime.now(),
+        ),
+      );
+      
       return loan;
     } catch (e) {
       throw DatabaseException('Failed to create loan: $e');
@@ -50,6 +68,20 @@ class LoanRepository extends BaseRepository<Loan> {
   Future<Loan> update(Loan loan) async {
     try {
       await database.update(database.loans).replace(_modelToCompanion(loan));
+      
+      // Update junction table: delete old links and create new one
+      await (database.delete(database.loanPropertyLinks)
+        ..where((tbl) => tbl.loanId.equals(loan.id))).go();
+      
+      await database.into(database.loanPropertyLinks).insert(
+        LoanPropertyLinksCompanion.insert(
+          id: 'lpl_${loan.id}_${loan.propertyId}',
+          loanId: loan.id,
+          propertyId: loan.propertyId,
+          created: DateTime.now(),
+        ),
+      );
+      
       return loan;
     } catch (e) {
       throw DatabaseException('Failed to update loan: $e');
@@ -59,6 +91,10 @@ class LoanRepository extends BaseRepository<Loan> {
   @override
   Future<void> delete(String id) async {
     try {
+      // Delete junction table entries first (foreign key constraint)
+      await (database.delete(database.loanPropertyLinks)
+        ..where((tbl) => tbl.loanId.equals(id))).go();
+      
       await (database.delete(database.loans)..where((tbl) => tbl.id.equals(id))).go();
     } catch (e) {
       throw DatabaseException('Failed to delete loan: $e');

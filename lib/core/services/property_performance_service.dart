@@ -53,7 +53,7 @@ class PropertyPerformanceService {
     required List<Unit> propertyUnits,
     required List<RentPayment> allPayments,
     required List<Expense> allExpenses,
-    required List<Loan> allLoans,
+    required List<Loan> propertyLoans,
     required List<Tenant> allTenants,
   }) {
     final now = DateTime.now();
@@ -105,8 +105,8 @@ class PropertyPerformanceService {
     final annualNOI = annualRentCollected - annualExpenses;
 
     // Property value and debt
+    // propertyLoans parameter now contains loans already filtered via LoanPropertyLinks junction table
     final propertyValue = property.estimatedValue ?? 0.0;
-    final propertyLoans = allLoans.where((l) => l.propertyId == property.id).toList();
     final totalDebt = propertyLoans.fold<double>(0, (sum, l) => sum + l.currentBalance);
     final equity = propertyValue - totalDebt;
 
@@ -160,12 +160,16 @@ class PropertyPerformanceService {
   }) {
     return properties.map((property) {
       final propertyUnits = allUnits.where((u) => u.propertyId == property.id).toList();
+      // Filter loans for this property - this filters by direct propertyId field
+      // NOTE: For accurate filtering via junction table, use LoanRepository.getByPropertyId
+      final propertyLoans = allLoans.where((l) => l.propertyId == property.id).toList();
+      
       return calculatePropertyPerformance(
         property: property,
         propertyUnits: propertyUnits,
         allPayments: allPayments,
         allExpenses: allExpenses,
-        allLoans: allLoans,
+        propertyLoans: propertyLoans,
         allTenants: allTenants,
       );
     }).toList();

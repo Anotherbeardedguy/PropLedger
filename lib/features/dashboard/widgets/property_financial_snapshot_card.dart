@@ -148,6 +148,8 @@ class PropertyFinancialSnapshotCard extends ConsumerWidget {
             e.date.isAfter(thirtyDaysAgo))
         .fold<double>(0, (sum, e) => sum + e.amount);
 
+    // Filter loans for this property using direct propertyId comparison
+    // Note: This matches the Loan model's propertyId field set during CRUD operations
     final propertyLoans = allLoans.where((l) => l.propertyId == property.id).toList();
     final totalDebt = propertyLoans.fold<double>(
       0,
