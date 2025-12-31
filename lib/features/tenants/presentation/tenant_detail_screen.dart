@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../data/models/tenant.dart';
 import '../logic/tenants_notifier.dart';
+import '../../expenses/logic/expenses_notifier.dart';
 import 'tenant_form_screen.dart';
 
 class TenantDetailScreen extends ConsumerWidget {
@@ -16,6 +17,7 @@ class TenantDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tenantAsync = ref.watch(tenantDetailProvider(tenantId));
+    final expensesAsync = ref.watch(expensesNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -242,6 +244,209 @@ class TenantDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+                const SizedBox(height: 16),
+                expensesAsync.when(
+                  data: (allExpenses) {
+                    final tenantExpenses = allExpenses.where((e) => e.tenantId == tenantId).toList();
+                    final depositDeducted = tenantExpenses.where((e) => e.deductedFromDeposit).toList();
+                    final regularExpenses = tenantExpenses.where((e) => !e.deductedFromDeposit).toList();
+                    
+                    depositDeducted.sort((a, b) => b.date.compareTo(a.date));
+                    regularExpenses.sort((a, b) => b.date.compareTo(a.date));
+                    
+                    final totalDeducted = depositDeducted.fold<double>(0, (sum, e) => sum + e.amount);
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (depositDeducted.isNotEmpty) ...[
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.account_balance_wallet, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Deposit Status',
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(),
+                                  _buildInfoRow(
+                                    context,
+                                    Icons.account_balance,
+                                    'Current Balance',
+                                    '\$${tenant.depositAmount?.toStringAsFixed(2) ?? '0.00'}',
+                                  ),
+                                  _buildInfoRow(
+                                    context,
+                                    Icons.remove_circle_outline,
+                                    'Total Deducted',
+                                    '\$${totalDeducted.toStringAsFixed(2)}',
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Deduction History (${depositDeducted.length})',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ...depositDeducted.map((expense) => Container(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    expense.category,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                                  ),
+                                                  Text(
+                                                    DateFormat('MMM dd, yyyy').format(expense.date),
+                                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                                  ),
+                                                  if (expense.notes != null)
+                                                    Text(
+                                                      expense.notes!,
+                                                      style: const TextStyle(fontSize: 11),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            Text(
+                                              '-\$${expense.amount.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.red,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (regularExpenses.isNotEmpty) ...[
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.receipt_long, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Linked Expenses',
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(),
+                                  Text(
+                                    '${regularExpenses.length} expense(s) linked to this tenant',
+                                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ...regularExpenses.map((expense) => Container(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    expense.category,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                                  ),
+                                                  Text(
+                                                    DateFormat('MMM dd, yyyy').format(expense.date),
+                                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                                  ),
+                                                  if (expense.notes != null)
+                                                    Text(
+                                                      expense.notes!,
+                                                      style: const TextStyle(fontSize: 11),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            Text(
+                                              '\$${expense.amount.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (tenantExpenses.isEmpty)
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.receipt_long, size: 48, color: Colors.grey[400]),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'No expenses linked to this tenant',
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                  loading: () => const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
               ],
             ),
           );
