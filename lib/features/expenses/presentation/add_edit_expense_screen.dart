@@ -1,11 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../data/models/expense.dart';
 import '../logic/expenses_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import '../../properties/logic/units_notifier.dart';
+import '../../tenants/logic/tenants_notifier.dart';
 
 class AddEditExpenseScreen extends ConsumerStatefulWidget {
   final Expense? expense;
@@ -24,8 +27,11 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
 
   String? _selectedPropertyId;
   String? _selectedUnitId;
+  String? _selectedTenantId;
   DateTime _selectedDate = DateTime.now();
   bool _recurring = false;
+  File? _receiptFile;
+  String? _existingReceiptPath;
 
   bool get _isEditing => widget.expense != null;
 
@@ -55,6 +61,7 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
       _selectedUnitId = expense.unitId;
       _selectedDate = expense.date;
       _recurring = expense.recurring;
+      _existingReceiptPath = expense.receiptFile;
     }
   }
 
@@ -71,6 +78,9 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
     final unitsAsync = _selectedPropertyId != null
         ? ref.watch(unitsNotifierProvider(_selectedPropertyId!))
+        : null;
+    final tenantsAsync = _selectedUnitId != null
+        ? ref.watch(tenantsNotifierProvider(null))
         : null;
 
     return Scaffold(
@@ -138,9 +148,41 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
                     }),
                   ],
                   onChanged: (value) {
-                    setState(() => _selectedUnitId = value);
+                    setState(() {
+                      _selectedUnitId = value;
+                      _selectedTenantId = null;
+                    });
                   },
                 ),
+                loading: () => const CircularProgressIndicator(),
+                error: (error, _) => Text('Error: $error'),
+              ),
+            const SizedBox(height: 16),
+            if (tenantsAsync != null)
+              tenantsAsync.when(
+                data: (allTenants) {
+                  final unitTenants = allTenants.where((t) => t.unitId == _selectedUnitId).toList();
+                  return DropdownButtonFormField<String>(
+                    value: _selectedTenantId,
+                    decoration: const InputDecoration(
+                      labelText: 'Tenant (Optional)',
+                      border: OutlineInputBorder(),
+                      helperText: 'Select to enable deposit deduction',
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('No tenant')),
+                      ...unitTenants.map((tenant) {
+                        return DropdownMenuItem(
+                          value: tenant.id,
+                          child: Text('${tenant.name}${tenant.depositAmount != null ? " - Deposit: \$${tenant.depositAmount!.toStringAsFixed(0)}" : ""}'),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _selectedTenantId = value);
+                    },
+                  );
+                },
                 loading: () => const CircularProgressIndicator(),
                 error: (error, _) => Text('Error: $error'),
               ),
@@ -226,6 +268,68 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
               ),
               maxLines: 3,
             ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.receipt_long, size: 20),
+                        const SizedBox(width: 8),
+                        const Text('Receipt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (_receiptFile != null || _existingReceiptPath != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _receiptFile != null 
+                                  ? 'New receipt: ${_receiptFile!.path.split('/').last}'
+                                  : 'Receipt attached',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  _receiptFile = null;
+                                  _existingReceiptPath = null;
+                                });
+                              },
+                              tooltip: 'Remove receipt',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    OutlinedButton.icon(
+                      onPressed: _pickReceiptFile,
+                      icon: const Icon(Icons.upload_file),
+                      label: Text(_receiptFile != null || _existingReceiptPath != null ? 'Change Receipt' : 'Upload Receipt'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _saveExpense,
@@ -234,6 +338,37 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
               ),
               child: Text(_isEditing ? 'Update Expense' : 'Add Expense'),
             ),
+            if (_selectedTenantId != null && tenantsAsync != null)
+              tenantsAsync.when(
+                data: (allTenants) {
+                  final tenant = allTenants.firstWhere((t) => t.id == _selectedTenantId);
+                  final hasDeposit = tenant.depositAmount != null && tenant.depositAmount! > 0;
+                  final expenseAmount = double.tryParse(_amountController.text) ?? 0;
+                  final canDeduct = hasDeposit && expenseAmount > 0 && expenseAmount <= tenant.depositAmount!;
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: OutlinedButton.icon(
+                      onPressed: canDeduct ? () => _deductFromDeposit(tenant) : null,
+                      icon: const Icon(Icons.account_balance_wallet),
+                      label: Text(
+                        canDeduct 
+                          ? 'Deduct \$${expenseAmount.toStringAsFixed(2)} from Deposit (\$${tenant.depositAmount!.toStringAsFixed(2)} available)'
+                          : !hasDeposit 
+                            ? 'No deposit available'
+                            : 'Amount exceeds deposit',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.all(16),
+                        foregroundColor: canDeduct ? Colors.orange : Colors.grey,
+                        side: BorderSide(color: canDeduct ? Colors.orange : Colors.grey),
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
           ],
         ),
       ),
@@ -254,9 +389,35 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
     }
   }
 
+  Future<void> _pickReceiptFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _receiptFile = File(result.files.single.path!);
+        _existingReceiptPath = null;
+      });
+    }
+  }
+
   void _saveExpense() async {
     if (_formKey.currentState!.validate()) {
       final notifier = ref.read(expensesNotifierProvider.notifier);
+      
+      // Handle receipt file storage path
+      String? receiptPath;
+      if (_receiptFile != null) {
+        // Store file in app documents directory with expense ID
+        final expenseId = _isEditing ? widget.expense!.id : const Uuid().v4();
+        final fileName = 'receipt_${expenseId}_${DateTime.now().millisecondsSinceEpoch}${_receiptFile!.path.substring(_receiptFile!.path.lastIndexOf('.'))}';
+        receiptPath = fileName;
+        // TODO: Actual file copy to app directory would happen here in production
+      } else if (_existingReceiptPath != null) {
+        receiptPath = _existingReceiptPath;
+      }
       
       final expense = Expense(
         id: _isEditing ? widget.expense!.id : const Uuid().v4(),
@@ -267,7 +428,7 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
         date: _selectedDate,
         recurring: _recurring,
         notes: _notesController.text.isEmpty ? null : _notesController.text,
-        receiptFile: _isEditing ? widget.expense!.receiptFile : null,
+        receiptFile: receiptPath,
         created: _isEditing ? widget.expense!.created : DateTime.now(),
         updated: DateTime.now(),
       );
@@ -282,6 +443,83 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_isEditing ? 'Expense updated' : 'Expense added')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deductFromDeposit(tenant) async {
+    final expenseAmount = double.parse(_amountController.text);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Deduct from Deposit'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Deduct \$${expenseAmount.toStringAsFixed(2)} from ${tenant.name}\'s deposit?'),
+            const SizedBox(height: 12),
+            Text('Current deposit: \$${tenant.depositAmount!.toStringAsFixed(2)}', style: const TextStyle(fontSize: 13)),
+            Text('After deduction: \$${(tenant.depositAmount! - expenseAmount).toStringAsFixed(2)}', 
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            const Text('This will save the expense and update the tenant\'s deposit amount.', 
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Deduct from Deposit'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Save expense first
+      final expensesNotifier = ref.read(expensesNotifierProvider.notifier);
+      
+      final expense = Expense(
+        id: _isEditing ? widget.expense!.id : const Uuid().v4(),
+        propertyId: _selectedPropertyId!,
+        unitId: _selectedUnitId,
+        category: _categoryController.text,
+        amount: expenseAmount,
+        date: _selectedDate,
+        recurring: _recurring,
+        notes: '${_notesController.text.isEmpty ? "" : "${_notesController.text}\n"}[Deducted from ${tenant.name}\'s deposit]',
+        receiptFile: _receiptFile != null ? 'receipt_${DateTime.now().millisecondsSinceEpoch}' : _existingReceiptPath,
+        created: _isEditing ? widget.expense!.created : DateTime.now(),
+        updated: DateTime.now(),
+      );
+
+      if (_isEditing) {
+        await expensesNotifier.updateExpense(expense);
+      } else {
+        await expensesNotifier.createExpense(expense);
+      }
+
+      // Update tenant deposit
+      final updatedTenant = tenant.copyWith(
+        depositAmount: tenant.depositAmount! - expenseAmount,
+        updated: DateTime.now(),
+      );
+      await ref.read(tenantsNotifierProvider(null).notifier).updateTenant(updatedTenant);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Expense saved and \$${expenseAmount.toStringAsFixed(2)} deducted from deposit'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     }
