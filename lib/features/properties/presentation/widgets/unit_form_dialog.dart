@@ -100,6 +100,9 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
             .updateUnit(unit);
       }
 
+      // Invalidate global units provider so tenant form sees the changes
+      ref.invalidate(unitsNotifierProvider(null));
+
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -154,6 +157,10 @@ class _UnitFormDialogState extends ConsumerState<UnitFormDialog> {
         await ref
             .read(unitsNotifierProvider(widget.propertyId).notifier)
             .deleteUnit(widget.unit!.id);
+        
+        // Invalidate global units provider so tenant form sees the changes
+        ref.invalidate(unitsNotifierProvider(null));
+        
         if (mounted) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
