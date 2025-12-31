@@ -8,6 +8,7 @@ import '../../expenses/logic/expenses_notifier.dart';
 import '../../loans/logic/loans_notifier.dart';
 import '../../maintenance/logic/maintenance_notifier.dart';
 import '../../properties/logic/units_notifier.dart';
+import '../../financials/presentation/financials_screen.dart';
 
 class MonthlyCashFlowCard extends ConsumerWidget {
   const MonthlyCashFlowCard({super.key});
@@ -34,11 +35,27 @@ class MonthlyCashFlowCard extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Monthly Cash Flow',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    'Monthly Cash Flow',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const FinancialsScreen(),
                       ),
+                    );
+                  },
+                  icon: const Icon(Icons.analytics, size: 18),
+                  label: const Text('View Reports'),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
                 ),
               ],
             ),

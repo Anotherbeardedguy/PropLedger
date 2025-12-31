@@ -15,6 +15,7 @@ import '../../expenses/presentation/expenses_screen.dart';
 import '../../maintenance/presentation/maintenance_screen.dart';
 import '../../loans/presentation/loans_screen.dart';
 import '../../documents/presentation/documents_screen.dart';
+import '../../financials/presentation/financials_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -156,6 +157,18 @@ class DashboardScreen extends ConsumerWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const DocumentsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildQuickActionCard(
+                    context,
+                    icon: Icons.analytics,
+                    label: 'Financials',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const FinancialsScreen(),
                         ),
                       );
                     },
