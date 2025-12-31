@@ -253,27 +253,32 @@ class MonthlyCashFlowCard extends ConsumerWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildSummaryItem(
-            context,
-            'Total Income',
-            CurrencyFormatter.format(summary.totalIncome, settings.currency),
-            Colors.green,
+          Expanded(
+            child: _buildSummaryItem(
+              context,
+              'Total Income',
+              CurrencyFormatter.format(summary.totalIncome, settings.currency),
+              Colors.green,
+            ),
           ),
           Container(width: 1, height: 50, color: Colors.grey[300]),
-          _buildSummaryItem(
-            context,
-            'Total Expenses',
-            CurrencyFormatter.format(summary.totalExpenses, settings.currency),
-            Colors.red,
+          Expanded(
+            child: _buildSummaryItem(
+              context,
+              'Total Expenses',
+              CurrencyFormatter.format(summary.totalExpenses, settings.currency),
+              Colors.red,
+            ),
           ),
           Container(width: 1, height: 50, color: Colors.grey[300]),
-          _buildSummaryItem(
-            context,
-            'Net Cashflow',
-            CurrencyFormatter.format(netCashFlow, settings.currency),
-            netCashFlow >= 0 ? Colors.green : Colors.red,
+          Expanded(
+            child: _buildSummaryItem(
+              context,
+              'Net Cashflow',
+              CurrencyFormatter.format(netCashFlow, settings.currency),
+              netCashFlow >= 0 ? Colors.green : Colors.red,
+            ),
           ),
         ],
       ),
@@ -291,17 +296,22 @@ class MonthlyCashFlowCard extends ConsumerWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             color: Colors.grey[700],
           ),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
       ],
