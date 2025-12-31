@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 import '../../../data/models/loan.dart';
-import '../../../data/models/property.dart';
 import '../logic/loans_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 import '../../../data/models/expense.dart';
-import '../../../data/models/property.dart';
-import '../../../data/models/unit.dart';
 import '../logic/expenses_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import '../../properties/logic/units_notifier.dart';

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../../data/models/document.dart';
 import '../../../data/models/document_link.dart';
 import '../../../data/models/property.dart';
-import '../../../data/models/tenant.dart';
 import '../logic/documents_notifier.dart';
 import '../../properties/logic/properties_notifier.dart';
 import '../../tenants/logic/tenants_notifier.dart';
