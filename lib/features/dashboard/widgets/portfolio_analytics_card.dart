@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
+import '../../../data/models/unit.dart';
 import '../../properties/logic/properties_notifier.dart';
+import '../../properties/logic/units_notifier.dart';
 import '../../loans/logic/loans_notifier.dart';
-import '../../tenants/logic/tenants_notifier.dart';
 
 class PortfolioAnalyticsCard extends ConsumerWidget {
   const PortfolioAnalyticsCard({super.key});
@@ -12,8 +13,8 @@ class PortfolioAnalyticsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final propertiesAsync = ref.watch(propertiesNotifierProvider);
+    final unitsAsync = ref.watch(unitsNotifierProvider(null));
     final loansAsync = ref.watch(loansNotifierProvider);
-    final tenantsAsync = ref.watch(tenantsNotifierProvider(null));
     final settings = ref.watch(settingsNotifierProvider);
 
     return Card(
@@ -96,26 +97,21 @@ class PortfolioAnalyticsCard extends ConsumerWidget {
             const Divider(height: 24),
             
             // Occupancy Rate
-            tenantsAsync.when(
-              data: (tenants) {
-                if (tenants.isEmpty) {
+            unitsAsync.when(
+              data: (units) {
+                if (units.isEmpty) {
                   return _buildAnalyticRow(
                     context,
                     'Occupancy Rate',
-                    'No tenants',
+                    'No units',
                     Colors.orange,
                     Icons.people,
                   );
                 }
                 
-                final activeLeases = tenants.where((tenant) {
-                  if (tenant.leaseEnd == null || tenant.leaseStart == null) return false;
-                  final now = DateTime.now();
-                  return tenant.leaseStart!.isBefore(now) && 
-                         tenant.leaseEnd!.isAfter(now);
-                }).length;
-                
-                final occupancyRate = (activeLeases / tenants.length * 100);
+                final totalUnits = units.length;
+                final occupiedUnits = units.where((u) => u.status == UnitStatus.occupied).length;
+                final occupancyRate = (occupiedUnits / totalUnits * 100);
                 
                 return _buildAnalyticRow(
                   context,
