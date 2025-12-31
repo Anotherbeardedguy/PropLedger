@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/services/cashflow_service.dart';
 import '../../../features/settings/logic/settings_notifier.dart';
 import '../../rent_payments/logic/rent_payments_notifier.dart';
 import '../../expenses/logic/expenses_notifier.dart';
+import '../../loans/logic/loans_notifier.dart';
+import '../../maintenance/logic/maintenance_notifier.dart';
+import '../../properties/logic/units_notifier.dart';
 
 class MonthlyCashFlowCard extends ConsumerWidget {
   const MonthlyCashFlowCard({super.key});
@@ -12,6 +16,9 @@ class MonthlyCashFlowCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final paymentsAsync = ref.watch(rentPaymentsNotifierProvider(null));
     final expensesAsync = ref.watch(expensesNotifierProvider);
+    final loansAsync = ref.watch(loansNotifierProvider);
+    final maintenanceAsync = ref.watch(maintenanceNotifierProvider);
+    final unitsAsync = ref.watch(unitsNotifierProvider(null));
     final settings = ref.watch(settingsNotifierProvider);
 
     return Card(
@@ -40,26 +47,39 @@ class MonthlyCashFlowCard extends ConsumerWidget {
               data: (payments) {
                 return expensesAsync.when(
                   data: (expenses) {
-                    final monthlyData = _calculateMonthlyData(payments, expenses);
-                    
-                    if (monthlyData.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            'No financial data yet',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ),
-                      );
-                    }
+                    return loansAsync.when(
+                      data: (loans) {
+                        return maintenanceAsync.when(
+                          data: (maintenance) {
+                            return unitsAsync.when(
+                              data: (units) {
+                                final cashflowService = CashflowService();
+                                final currentMonth = cashflowService.calculateMonthlyCashflow(
+                                  rentPayments: payments,
+                                  loans: loans,
+                                  units: units,
+                                  expenses: expenses,
+                                  maintenanceTasks: maintenance,
+                                );
 
-                    return Column(
-                      children: [
-                        _buildCashFlowChart(context, monthlyData, settings),
-                        const SizedBox(height: 16),
-                        _buildSummary(context, monthlyData, settings),
-                      ],
+                                return Column(
+                                  children: [
+                                    _buildDetailedBreakdown(context, currentMonth, settings),
+                                    const SizedBox(height: 16),
+                                    _buildEnhancedSummary(context, currentMonth, settings),
+                                  ],
+                                );
+                              },
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (e, _) => Center(child: Text('Error: $e')),
+                            );
+                          },
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (e, _) => Center(child: Text('Error: $e')),
+                        );
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Center(child: Text('Error: $e')),
                     );
                   },
                   loading: () => const Center(
@@ -95,165 +115,146 @@ class MonthlyCashFlowCard extends ConsumerWidget {
     );
   }
 
-  List<MonthlyFlowData> _calculateMonthlyData(
-    List<dynamic> payments,
-    List<dynamic> expenses,
-  ) {
-    final now = DateTime.now();
-    final Map<String, MonthlyFlowData> monthlyMap = {};
-
-    // Generate last 6 months
-    for (int i = 5; i >= 0; i--) {
-      final month = DateTime(now.year, now.month - i, 1);
-      final key = '${month.year}-${month.month.toString().padLeft(2, '0')}';
-      monthlyMap[key] = MonthlyFlowData(
-        month: month,
-        income: 0,
-        expenses: 0,
-      );
-    }
-
-    // Aggregate income from paid rent payments
-    for (final payment in payments) {
-      if (payment.paidDate != null) {
-        final paidDate = payment.paidDate!;
-        final key = '${paidDate.year}-${paidDate.month.toString().padLeft(2, '0')}';
-        if (monthlyMap.containsKey(key)) {
-          monthlyMap[key] = monthlyMap[key]!.copyWith(
-            income: monthlyMap[key]!.income + payment.amount,
-          );
-        }
-      }
-    }
-
-    // Aggregate expenses
-    for (final expense in expenses) {
-      final expenseDate = expense.date;
-      final key = '${expenseDate.year}-${expenseDate.month.toString().padLeft(2, '0')}';
-      if (monthlyMap.containsKey(key)) {
-        monthlyMap[key] = monthlyMap[key]!.copyWith(
-          expenses: monthlyMap[key]!.expenses + expense.amount,
-        );
-      }
-    }
-
-    return monthlyMap.values.toList()..sort((a, b) => a.month.compareTo(b.month));
-  }
-
-  Widget _buildCashFlowChart(
+  Widget _buildDetailedBreakdown(
     BuildContext context,
-    List<MonthlyFlowData> data,
+    MonthlyCashflowSummary summary,
     settings,
   ) {
-    final maxValue = data.fold<double>(
-      0,
-      (max, d) => [max, d.income, d.expenses].reduce((a, b) => a > b ? a : b),
-    );
-
-    return SizedBox(
-      height: 200,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: data.map((monthData) {
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _buildBar(
-                    context,
-                    monthData.income,
-                    maxValue,
-                    Colors.green,
-                  ),
-                  const SizedBox(height: 4),
-                  _buildBar(
-                    context,
-                    monthData.expenses,
-                    maxValue,
-                    Colors.red,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _getMonthLabel(monthData.month),
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Income',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildBreakdownItem(
+          'Rent Collected',
+          summary.rentIncome,
+          settings.currency,
+          Icons.payments,
+          Colors.green,
+        ),
+        const Divider(height: 24),
+        Text(
+          'Expenses',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildBreakdownItem(
+          'Loan Payments',
+          summary.loanPayments,
+          settings.currency,
+          Icons.account_balance,
+          Colors.red,
+        ),
+        const SizedBox(height: 4),
+        _buildBreakdownItem(
+          'Upkeep Costs',
+          summary.upkeepCosts,
+          settings.currency,
+          Icons.build,
+          Colors.orange,
+        ),
+        const SizedBox(height: 4),
+        _buildBreakdownItem(
+          'Maintenance',
+          summary.maintenanceCosts,
+          settings.currency,
+          Icons.handyman,
+          Colors.deepOrange,
+        ),
+        const SizedBox(height: 4),
+        _buildBreakdownItem(
+          'Other Expenses',
+          summary.otherExpenses,
+          settings.currency,
+          Icons.receipt_long,
+          Colors.red[300]!,
+        ),
+      ],
     );
   }
 
-  Widget _buildBar(
-    BuildContext context,
-    double value,
-    double maxValue,
+  Widget _buildBreakdownItem(
+    String label,
+    double amount,
+    String currency,
+    IconData icon,
     Color color,
   ) {
-    final height = maxValue > 0 ? (value / maxValue * 70).clamp(2.0, 70.0) : 2.0;
-    
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+            ),
+          ),
+          Text(
+            CurrencyFormatter.format(amount, currency),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
-      child: value > 0
-          ? Center(
-              child: Text(
-                CurrencyFormatter.formatCompact(value, 'USD'),
-                style: const TextStyle(
-                  fontSize: 8,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          : null,
     );
   }
 
-  Widget _buildSummary(
+  Widget _buildEnhancedSummary(
     BuildContext context,
-    List<MonthlyFlowData> data,
+    MonthlyCashflowSummary summary,
     settings,
   ) {
-    final totalIncome = data.fold<double>(0, (sum, d) => sum + d.income);
-    final totalExpenses = data.fold<double>(0, (sum, d) => sum + d.expenses);
-    final netCashFlow = totalIncome - totalExpenses;
+    final netCashFlow = summary.netCashflow;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: netCashFlow >= 0
             ? Colors.green.withValues(alpha: 0.1)
             : Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: netCashFlow >= 0 ? Colors.green : Colors.red,
+          width: 2,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildSummaryItem(
             context,
-            'Income',
-            CurrencyFormatter.format(totalIncome, settings.currency),
+            'Total Income',
+            CurrencyFormatter.format(summary.totalIncome, settings.currency),
             Colors.green,
           ),
-          Container(width: 1, height: 40, color: Colors.grey[300]),
+          Container(width: 1, height: 50, color: Colors.grey[300]),
           _buildSummaryItem(
             context,
-            'Expenses',
-            CurrencyFormatter.format(totalExpenses, settings.currency),
+            'Total Expenses',
+            CurrencyFormatter.format(summary.totalExpenses, settings.currency),
             Colors.red,
           ),
-          Container(width: 1, height: 40, color: Colors.grey[300]),
+          Container(width: 1, height: 50, color: Colors.grey[300]),
           _buildSummaryItem(
             context,
-            'Net',
+            'Net Cashflow',
             CurrencyFormatter.format(netCashFlow, settings.currency),
             netCashFlow >= 0 ? Colors.green : Colors.red,
           ),
@@ -290,32 +291,4 @@ class MonthlyCashFlowCard extends ConsumerWidget {
     );
   }
 
-  String _getMonthLabel(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[date.month - 1];
-  }
-}
-
-class MonthlyFlowData {
-  final DateTime month;
-  final double income;
-  final double expenses;
-
-  MonthlyFlowData({
-    required this.month,
-    required this.income,
-    required this.expenses,
-  });
-
-  MonthlyFlowData copyWith({
-    DateTime? month,
-    double? income,
-    double? expenses,
-  }) {
-    return MonthlyFlowData(
-      month: month ?? this.month,
-      income: income ?? this.income,
-      expenses: expenses ?? this.expenses,
-    );
-  }
 }
